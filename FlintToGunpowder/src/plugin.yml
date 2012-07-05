@@ -1,0 +1,4 @@
+name: FlintToGunpowder
+version: 0.1
+main: com.timalmdal.bukkit.flint2gunpowder.FlintToGunpowderPlugin
+depend: [Spout]

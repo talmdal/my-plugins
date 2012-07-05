@@ -1,0 +1,10 @@
+<project name="Flint2Gunpowder" default="dist" basedir=".">
+  <description>Build a Bukkit plugin and deploy to the server plugin directory</description>
+	
+  <property name="build" location="bin"/>
+  <property name="dist" location="../../minecraft_server"/>
+
+  <target name="dist" description="generate the distribution" >
+    <jar jarfile="${dist}/plugins/${projectName}.jar" basedir="${build}" update="false"/>
+  </target>
+</project>

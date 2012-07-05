@@ -1,0 +1,9 @@
+name: Difficulty
+version: 0.1
+main: com.timalmdal.bukkit.difficulty.DifficultyCommand
+commands:
+  difficulty:
+    description: This command gets or sets the difficulty of the game.
+    usage: /difficulty [peaceful | easy | normal | hard]
+    permission: difficulty.set
+    permission-message: You don't have <permission>

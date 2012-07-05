@@ -1,0 +1,4 @@
+name: CoalToDiamonds
+version: 0.1
+main: com.timalmdal.bukkit.rottenflesh2meat.RottenFleshToMeatPlugin
+depend: [Spout]

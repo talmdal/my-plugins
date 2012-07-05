@@ -1,0 +1,4 @@
+name: More Diamonds
+version: 0.1
+main: com.timalmdal.bukkit.morediamonds.MoreDiamondsPlugin
+load: startup

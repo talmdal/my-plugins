@@ -1,0 +1,4 @@
+name: Coal2Diamonds
+version: 0.1
+main: com.timalmdal.bukkit.coal2diamond.Coal2DiamondPlugin
+depend: [Spout]
