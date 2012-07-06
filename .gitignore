@@ -1,5 +1,3 @@
-CoalToDiamonds/bin/
-Difficulty/bin/
-FlintToGunpowder/bin/
-MoreDiamonds/bin/
-RottenFleshToMeat/bin/
+bin/
+target/
+.metadata
