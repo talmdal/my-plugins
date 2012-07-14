@@ -1,14 +1,15 @@
 /*
+ * This file is part of Difficulty Plugin.
  *
- * Copyright (c) 2012, Tim Almdal <http://www.timalmdal.com/>
- * Difficulty plugin is licensed under the GNU Lesser General Public License.
+ * Copyright (c) 2012, Tim Almdal <http://www.spout.org/>
+ * Difficulty Plugin is licensed under the GNU Lesser General Public License.
  *
- * Difficulty plugin is free software: you can redistribute it and/or modify
+ * Difficulty Plugin is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Difficulty plugin is distributed in the hope that it will be useful,
+ * Difficulty Plugin is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
