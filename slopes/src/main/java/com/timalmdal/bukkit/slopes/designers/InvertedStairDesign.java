@@ -25,10 +25,13 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.plugin.Plugin;
 import org.getspout.spoutapi.block.design.Texture;
 
-import com.timalmdal.bukkit.slopes.SlopesPlugin.SlopeSubTexture;
+import com.timalmdal.bukkit.slopes.util.Point;
+import com.timalmdal.bukkit.slopes.util.QuadList;
+import com.timalmdal.bukkit.slopes.util.SlopeSubTexture;
 
-public class CeilingStairsBlockDesign extends AbstractSlopesBlockDesign {
-	static final QuadList QUAD_LIST_SOUTH = AbstractSlopesBlockDesign.quadBuilder()
+
+public class InvertedStairDesign extends AbstractBlockDesign {
+	static final QuadList QUAD_LIST_SOUTH = AbstractBlockDesign.quadBuilder()
 			.add(new Point(0.0f, 1.0f, 0.0f), new Point(0.0f, 1.0f, 1.0f), new Point(1.0f, 1.0f, 1.0f), new Point(1.0f, 1.0f, 0.0f)) // top
 			.add(new Point(0.0f, 0.5f, 0.5f), new Point(0.0f, 0.5f, 1.0f), new Point(1.0f, 0.5f, 1.0f), new Point(1.0f, 0.5f, 0.5f)) // top lower
 			.add(new Point(0.0f, 0.0f, 0.5f), new Point(0.0f, 0.0f, 0.0f), new Point(1.0f, 0.0f, 0.0f), new Point(1.0f, 0.0f, 0.5f)) // bottom
@@ -41,7 +44,7 @@ public class CeilingStairsBlockDesign extends AbstractSlopesBlockDesign {
 			.add(new Point(0.0f, 1.0f, 0.0f), new Point(0.0f, 0.5f, 0.0f), new Point(0.0f, 0.5f, 1.0f), new Point(0.0f, 1.0f, 1.0f)) // upper west
 	;
 
-	public CeilingStairsBlockDesign(final Plugin plugin, final Texture texture, final SlopeSubTexture slopeTexture) {
+	public InvertedStairDesign(final Plugin plugin, final Texture texture, final SlopeSubTexture slopeTexture) {
 		super(plugin, texture, slopeTexture);
 		setBrightness(1.0F);
 		setBoundingBox(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F);

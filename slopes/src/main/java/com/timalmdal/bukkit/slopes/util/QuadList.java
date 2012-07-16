@@ -1,4 +1,4 @@
-package com.timalmdal.bukkit.slopes.designers;
+package com.timalmdal.bukkit.slopes.util;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -10,11 +10,11 @@ import org.getspout.spoutapi.block.design.SubTexture;
 public class QuadList {
 	private final List<List<Point>> quads = new ArrayList<List<Point>>();
 
-	protected QuadList() {
+	public QuadList() {
 	}
 
 	public QuadList add(final Point... vertices) {
-		if (vertices.length != 4) {
+		if (vertices.length < 3 || vertices.length > 4) {
 			throw new IllegalArgumentException("Invalid vertex index: " + vertices.length);
 		}
 

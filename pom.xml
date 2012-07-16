@@ -11,6 +11,7 @@
 	<url>http://www.timalmdal.com</url>
 
 	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<dist.directory>../../minecraft_server/plugins</dist.directory>
 		<craftbukkitVersion>1.2.5-R4.1-SNAPSHOT</craftbukkitVersion>
 	</properties>
@@ -20,13 +21,17 @@
 		<sourceDirectory>src</sourceDirectory>
 		<resources>
 			<resource>
-				<directory>src</directory>
-				<excludes>
-					<exclude>**/*.java</exclude>
-				</excludes>
+				<targetPath>.</targetPath>
+				<filtering>false</filtering>
+				<directory>${basedir}</directory>
 				<includes>
 					<include>LICENSE.txt</include>
 				</includes>
+			</resource>
+			<resource>
+				<targetPath>.</targetPath>
+				<filtering>true</filtering>
+				<directory>${basedir}/src/main/resources</directory>
 			</resource>
 		</resources>
 		<plugins>

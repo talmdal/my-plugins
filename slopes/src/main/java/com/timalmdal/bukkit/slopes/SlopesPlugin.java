@@ -28,7 +28,6 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Level;
 
 import org.bukkit.Bukkit;
@@ -38,72 +37,38 @@ import org.getspout.spoutapi.SpoutManager;
 import org.getspout.spoutapi.block.design.Texture;
 import org.getspout.spoutapi.inventory.SpoutItemStack;
 import org.getspout.spoutapi.inventory.SpoutShapedRecipe;
-import org.getspout.spoutapi.material.Block;
-import org.getspout.spoutapi.material.MaterialData;
 
-import com.timalmdal.bukkit.slopes.blocks.AbstractSlopesBlock;
-import com.timalmdal.bukkit.slopes.blocks.CeilingStairsBlock;
-import com.timalmdal.bukkit.slopes.blocks.StairsBlock;
+import com.timalmdal.bukkit.slopes.blocks.AbstractBlock;
+import com.timalmdal.bukkit.slopes.blocks.Corner;
+import com.timalmdal.bukkit.slopes.blocks.InvertedStair;
+import com.timalmdal.bukkit.slopes.blocks.SlantedCorner;
+import com.timalmdal.bukkit.slopes.blocks.SlopedAngle;
+import com.timalmdal.bukkit.slopes.blocks.SlopedFloor;
+import com.timalmdal.bukkit.slopes.blocks.StairBlock;
 import com.timalmdal.bukkit.slopes.events.SlopesEventListener;
+import com.timalmdal.bukkit.slopes.util.SlopeSubTexture;
 
 public class SlopesPlugin extends JavaPlugin {
 	private static final String TEXTURE_IMAGES = "Slopes.png";
 
-	public static enum SlopeSubTexture {
-		WOOD(0, MaterialData.wood),
-		COBBLESTONE(1, MaterialData.cobblestone),
-		GLASS(2, MaterialData.glass),
-		SANDSTONE(3, MaterialData.sandstone),
-		DIRT(4, MaterialData.dirt),
-		STONE(5, MaterialData.stone),
-		SAND(6, MaterialData.sand),
-		SNOW(7, MaterialData.snow),
-		GRASS(8, MaterialData.grass),
-		BRICK(9, MaterialData.brick),
-		GRAVEL(10, MaterialData.gravel),
-		GOLD(11, MaterialData.goldBlock),
-		IRON(12, MaterialData.ironBlock),
-		OBSIDIAN(13, MaterialData.obsidian),
-		DIAMOND(14, MaterialData.diamondBlock),
-		NETHERBRICK(15, MaterialData.netherBrick);
-
-		private final int textureIndex;
-		private final Block sourceBlock;
-
-		private SlopeSubTexture(final int textureIndex, final Block sourceBlock) {
-			this.textureIndex = textureIndex;
-			this.sourceBlock = sourceBlock;
-		}
-
-		public int getTextureIndex() {
-			return textureIndex;
-		}
-
-		public Block getSourceBlock() {
-			return sourceBlock;
-		}
-
-		public String getDisplayName(final String suffix) {
-			final StringBuilder displayName = new StringBuilder(name().toLowerCase())
-					.append(suffix);
-			displayName.setCharAt(0, Character.toUpperCase(displayName.charAt(0)));
-			return displayName.toString();
-		}
-
-		public boolean isOpaque() {
-			return sourceBlock.isOpaque();
-		}
-	};
-
 	public static Texture texture;
 
-	public static EnumSet<SlopeSubTexture> extendedSet = EnumSet.of(
-			SlopeSubTexture.GLASS, SlopeSubTexture.SANDSTONE, SlopeSubTexture.DIRT, SlopeSubTexture.SAND,
-			SlopeSubTexture.SNOW, SlopeSubTexture.GRASS, SlopeSubTexture.GRAVEL, SlopeSubTexture.GOLD,
-			SlopeSubTexture.IRON, SlopeSubTexture.OBSIDIAN, SlopeSubTexture.DIAMOND);
-	public static EnumSet<SlopeSubTexture> allMaterials = EnumSet.allOf(SlopeSubTexture.class);
+	private static class SlopeBlockMap extends HashMap<SlopeSubTexture, List<AbstractBlock>> {
+		private static final long serialVersionUID = 1L;
 
-	private static Map<SlopeSubTexture, List<AbstractSlopesBlock>> slopeBlocks = new HashMap<SlopeSubTexture, List<AbstractSlopesBlock>>();
+		@Override
+		public List<AbstractBlock> get(final Object material) {
+			List<AbstractBlock> materialBlocks = super.get(material);
+			if (materialBlocks == null) {
+				materialBlocks = new ArrayList<AbstractBlock>();
+				super.put((SlopeSubTexture) material, materialBlocks);
+			}
+			return materialBlocks;
+		}
+
+	}
+
+	private static SlopeBlockMap slopeBlocks = new SlopeBlockMap();
 
 	@Override
 	public void onDisable() {
@@ -122,22 +87,22 @@ public class SlopesPlugin extends JavaPlugin {
 	}
 
 	public void setupBlocks() {
-		for (final SlopeSubTexture material : extendedSet) {
-			List<AbstractSlopesBlock> materialBlocks = slopeBlocks.get(material);
-			if (materialBlocks == null) {
-				materialBlocks = new ArrayList<AbstractSlopesBlock>();
-				slopeBlocks.put(material, materialBlocks);
-			}
-			materialBlocks.add(createBlockForSubTexture(StairsBlock.class, material));
-			materialBlocks.add(createBlockForSubTexture(CeilingStairsBlock.class, material));
-		}
+		// Generate the blocks that are similiar to minecraft and only need to
+		// generate in other materials
+		generateBlocksForMaterials(SlopeSubTexture.getExtendedMaterialSet(),
+				StairBlock.class,
+				InvertedStair.class);
 
-		// setupSlopedFloors();
+		// Generate the blocks that have no minecraft equivalent and need all
+		// material generated
+		generateBlocksForMaterials(SlopeSubTexture.getAllMaterialSet(),
+				SlopedFloor.class,
+				Corner.class,
+				SlantedCorner.class,
+				SlopedAngle.class);
+
 		// setupSlopedCeilings();
-		// setupCorners();
-		// setupSlopedAngles();
 		// setupCeilingAngles();
-		// setupSlantedCorners();
 		// setupCeilingSlantedCorners();
 		// setupObliqueSlopes();
 		// setupInvertedObliqueSlopes();
@@ -145,7 +110,23 @@ public class SlopesPlugin extends JavaPlugin {
 		// setupInvertedSlopesIntersections();
 	}
 
-	private <T extends AbstractSlopesBlock> T createBlockForSubTexture(final Class<T> blockClass, final SlopeSubTexture material) {
+	/**
+	 * Generate the specified blocks for all the materials
+	 * @param blockClasses list of block classes to generate
+	 */
+	@SuppressWarnings("unchecked")
+	private void generateBlocksForMaterials(final EnumSet<SlopeSubTexture> materialSet, final Class<?>... blockClasses) {
+		for (final SlopeSubTexture material : materialSet) {
+			final List<AbstractBlock> materialBlocks = slopeBlocks.get(material);
+			for (final Class<?> block : blockClasses) {
+
+				final Class<? extends AbstractBlock> abstractBlockClass = (Class<? extends AbstractBlock>) block;
+				materialBlocks.add(createBlockForSubTexture(abstractBlockClass, material));
+			}
+		}
+	}
+
+	private <T extends AbstractBlock> T createBlockForSubTexture(final Class<T> blockClass, final SlopeSubTexture material) {
 		try {
 			final Constructor<T> constructor = blockClass.getConstructor(JavaPlugin.class, Texture.class, SlopeSubTexture.class);
 			final T slopeBlock = constructor.newInstance(this, texture, material);
@@ -167,330 +148,316 @@ public class SlopesPlugin extends JavaPlugin {
 		return null;
 	}
 
-	public void setupCeilingStairs() {
-		// wcs = new WoodenCeilingStairs(this, "Wooden Ceiling StairsBlock", texture, wood);
-		// ccs = new CobbleCeilingStairs(this, "Cobblestone Ceiling StairsBlock", texture, cobble);
-		// glcs = new GlassCeilingStairs(this, "Glass Ceiling StairsBlock", texture, glass);
-		// sscs = new SandstoneCeilingStairs(this, "Sandstone Ceiling StairsBlock", texture, sandstone);
-		// dircs = new DirtCeilingStairs(this, "Dirt Ceiling StairsBlock", texture, dirt);
-		// stcs = new StoneCeilingStairs(this, "Stone Ceiling StairsBlock", texture, stone);
-		// sacs = new SandCeilingStairs(this, "Sand Ceiling StairsBlock", texture, sand);
-		// sncs = new SnowCeilingStairs(this, "Snow Ceiling StairsBlock", texture, snow);
-		// grascs = new GrassCeilingStairs(this, "Grass Ceiling StairsBlock", texture, grass);
-		// bcs = new BricksCeilingStairs(this, "Bricks Ceiling StairsBlock", texture, bricks);
-		// gravcs = new GravelCeilingStairs(this, "Gravel Ceiling StairsBlock", texture, gravel);
-		// gocs = new GoldCeilingStairs(this, "Gold Ceiling StairsBlock", texture, gold);
-		// ics = new IronCeilingStairs(this, "Iron Ceiling StairsBlock", texture, iron);
-		// ocs = new ObsidianCeilingStairs(this, "Obisidian Ceiling StairsBlock", texture, obsidian);
-		// diacs = new DiamondCeilingStairs(this, "Diamond Ceiling StairsBlock", texture, diamond);
-		// ncs = new NetherbrickCeilingStairs(this, "Netherbrick Ceiling StairsBlock", texture, netherbrick);
-	}
-
-	public void setupSlopedFloors() {
-		// wsf = new WoodenSlopedFloor(this, "Wooden Sloped Floor", texture, wood);
-		// csf = new CobbleSlopedFloor(this, "Cobblestone Sloped Floor", texture, cobble);
-		// glsf = new GlassSlopedFloor(this, "Glass Sloped Floor", texture, glass);
-		// sssf = new SandstoneSlopedFloor(this, "Sandstone Sloped Floor", texture, sandstone);
-		// dirsf = new DirtSlopedFloor(this, "Dirt Sloped Floor", texture, dirt);
-		// stsf = new StoneSlopedFloor(this, "Stone Sloped Floor", texture, stone);
-		// sasf = new SandSlopedFloor(this, "Sand Sloped Floor", texture, sand);
-		// snsf = new SnowSlopedFloor(this, "Snow Sloped Floor", texture, snow);
-		// grassf = new GrassSlopedFloor(this, "Grass Sloped Floor", texture, grass);
-		// bsf = new BricksSlopedFloor(this, "Bricks Sloped Floor", texture, bricks);
-		// gravsf = new GravelSlopedFloor(this, "Gravel Sloped Floor", texture, gravel);
-		// gosf = new GoldSlopedFloor(this, "Gold Sloped Floor", texture, gold);
-		// isf = new IronSlopedFloor(this, "Iron Sloped Floor", texture, iron);
-		// osf = new ObsidianSlopedFloor(this, "Obisidian Sloped Floor", texture, obsidian);
-		// diasf = new DiamondSlopedFloor(this, "Diamond Sloped Floor", texture, diamond);
-		// nsf = new NetherbrickSlopedFloor(this, "Netherbrick Sloped Floor", texture, netherbrick);
-	}
-
 	public void setupSlopedCeilings() {
-		// wsc = new WoodenSlopedCeiling(this, "Wooden Sloped Ceiling", texture, wood);
-		// csc = new CobbleSlopedCeiling(this, "Cobblestone Sloped Ceiling", texture, cobble);
-		// glsc = new GlassSlopedCeiling(this, "Glass Sloped Ceiling", texture, glass);
-		// sssc = new SandstoneSlopedCeiling(this, "Sandstone Sloped Ceiling", texture, sandstone);
-		// dirsc = new DirtSlopedCeiling(this, "Dirt Sloped Ceiling", texture, dirt);
-		// stsc = new StoneSlopedCeiling(this, "Stone Sloped Ceiling", texture, stone);
-		// sasc = new SandSlopedCeiling(this, "Sand Sloped Ceiling", texture, sand);
-		// snsc = new SnowSlopedCeiling(this, "Snow Sloped Ceiling", texture, snow);
-		// grassc = new GrassSlopedCeiling(this, "Grass Sloped Ceiling", texture, grass);
-		// bsc = new BricksSlopedCeiling(this, "Bricks Sloped Ceiling", texture, bricks);
-		// gravsc = new GravelSlopedCeiling(this, "Gravel Sloped Ceiling", texture, gravel);
-		// gosc = new GoldSlopedCeiling(this, "Gold Sloped Ceiling", texture, gold);
-		// isc = new IronSlopedCeiling(this, "Iron Sloped Ceiling", texture, iron);
-		// osc = new ObsidianSlopedCeiling(this, "Obisidian Sloped Ceiling", texture, obsidian);
-		// diasc = new DiamondSlopedCeiling(this, "Diamond Sloped Ceiling", texture, diamond);
-		// nsc = new NetherbrickSlopedCeiling(this, "Netherbrick Sloped Ceiling", texture, netherbrick);
-	}
-
-	public void setupCorners() {
-		// wc = new WoodenCorner(this, "Wooden Corner", texture, wood);
-		// cc = new CobbleCorner(this, "Cobblestone Corner", texture, cobble);
-		// glc = new GlassCorner(this, "Glass Corner", texture, glass);
-		// ssc = new SandstoneCorner(this, "Sandstone Corner", texture, sandstone);
-		// dirc = new DirtCorner(this, "Dirt Corner", texture, dirt);
-		// stc = new StoneCorner(this, "Stone Corner", texture, stone);
-		// sac = new SandCorner(this, "Sand Corner", texture, sand);
-		// snc = new SnowCorner(this, "Snow Corner", texture, snow);
-		// grasc = new GrassCorner(this, "Grass Corner", texture, grass);
-		// bc = new BricksCorner(this, "Bricks Corner", texture, bricks);
-		// gravc = new GravelCorner(this, "Gravel Corner", texture, gravel);
-		// goc = new GoldCorner(this, "Gold Corner", texture, gold);
-		// ic = new IronCorner(this, "Iron Corner", texture, iron);
-		// oc = new ObsidianCorner(this, "Obisidian Corner", texture, obsidian);
-		// diac = new DiamondCorner(this, "Diamond Corner", texture, diamond);
-		// nc = new NetherbrickCorner(this, "Netherbrick Corner", texture, netherbrick);
+		// wsc = new WoodenSlopedCeiling(this, "Wooden Sloped Ceiling", texture,
+		// wood);
+		// csc = new CobbleSlopedCeiling(this, "Cobblestone Sloped Ceiling",
+		// texture, cobble);
+		// glsc = new GlassSlopedCeiling(this, "Glass Sloped Ceiling", texture,
+		// glass);
+		// sssc = new SandstoneSlopedCeiling(this, "Sandstone Sloped Ceiling",
+		// texture, sandstone);
+		// dirsc = new DirtSlopedCeiling(this, "Dirt Sloped Ceiling", texture,
+		// dirt);
+		// stsc = new StoneSlopedCeiling(this, "Stone Sloped Ceiling", texture,
+		// stone);
+		// sasc = new SandSlopedCeiling(this, "Sand Sloped Ceiling", texture,
+		// sand);
+		// snsc = new SnowSlopedCeiling(this, "Snow Sloped Ceiling", texture,
+		// snow);
+		// grassc = new GrassSlopedCeiling(this, "Grass Sloped Ceiling",
+		// texture, grass);
+		// bsc = new BricksSlopedCeiling(this, "Bricks Sloped Ceiling", texture,
+		// bricks);
+		// gravsc = new GravelSlopedCeiling(this, "Gravel Sloped Ceiling",
+		// texture, gravel);
+		// gosc = new GoldSlopedCeiling(this, "Gold Sloped Ceiling", texture,
+		// gold);
+		// isc = new IronSlopedCeiling(this, "Iron Sloped Ceiling", texture,
+		// iron);
+		// osc = new ObsidianSlopedCeiling(this, "Obisidian Sloped Ceiling",
+		// texture, obsidian);
+		// diasc = new DiamondSlopedCeiling(this, "Diamond Sloped Ceiling",
+		// texture, diamond);
+		// nsc = new NetherbrickSlopedCeiling(this,
+		// "Netherbrick Sloped Ceiling", texture, netherbrick);
 	}
 
 	public void setupSlopedAngles() {
-		// wsa = new WoodenSlopedAngle(this, "Wooden Sloped Angle", texture, wood);
-		// csa = new CobbleSlopedAngle(this, "Cobblestone Sloped Angle", texture, cobble);
-		// glsa = new GlassSlopedAngle(this, "Glass Sloped Angle", texture, glass);
-		// sssa = new SandstoneSlopedAngle(this, "Sandstone Sloped Angle", texture, sandstone);
-		// dirsa = new DirtSlopedAngle(this, "Dirt Sloped Angle", texture, dirt);
-		// stsa = new StoneSlopedAngle(this, "Stone Sloped Angle", texture, stone);
+		// wsa = new WoodenSlopedAngle(this, "Wooden Sloped Angle", texture,
+		// wood);
+		// csa = new CobbleSlopedAngle(this, "Cobblestone Sloped Angle",
+		// texture, cobble);
+		// glsa = new GlassSlopedAngle(this, "Glass Sloped Angle", texture,
+		// glass);
+		// sssa = new SandstoneSlopedAngle(this, "Sandstone Sloped Angle",
+		// texture, sandstone);
+		// dirsa = new DirtSlopedAngle(this, "Dirt Sloped Angle", texture,
+		// dirt);
+		// stsa = new StoneSlopedAngle(this, "Stone Sloped Angle", texture,
+		// stone);
 		// sasa = new SandSlopedAngle(this, "Sand Sloped Angle", texture, sand);
 		// snsa = new SnowSlopedAngle(this, "Snow Sloped Angle", texture, snow);
-		// grassa = new GrassSlopedAngle(this, "Grass Sloped Angle", texture, grass);
-		// bsa = new BricksSlopedAngle(this, "Bricks Sloped Angle", texture, bricks);
-		// gravsa = new GravelSlopedAngle(this, "Gravel Sloped Angle", texture, gravel);
+		// grassa = new GrassSlopedAngle(this, "Grass Sloped Angle", texture,
+		// grass);
+		// bsa = new BricksSlopedAngle(this, "Bricks Sloped Angle", texture,
+		// bricks);
+		// gravsa = new GravelSlopedAngle(this, "Gravel Sloped Angle", texture,
+		// gravel);
 		// gosa = new GoldSlopedAngle(this, "Gold Sloped Angle", texture, gold);
 		// isa = new IronSlopedAngle(this, "Iron Sloped Angle", texture, iron);
-		// osa = new ObsidianSlopedAngle(this, "Obisidian Sloped Angle", texture, obsidian);
-		// diasa = new DiamondSlopedAngle(this, "Diamond Sloped Angle", texture, diamond);
-		// nsa = new NetherbrickSlopedAngle(this, "Netherbrick Sloped Angle", texture, netherbrick);
+		// osa = new ObsidianSlopedAngle(this, "Obisidian Sloped Angle",
+		// texture, obsidian);
+		// diasa = new DiamondSlopedAngle(this, "Diamond Sloped Angle", texture,
+		// diamond);
+		// nsa = new NetherbrickSlopedAngle(this, "Netherbrick Sloped Angle",
+		// texture, netherbrick);
 	}
 
 	public void setupCeilingAngles() {
-		// wca = new WoodenCeilingAngle(this, "Wooden Ceiling Angle", texture, wood, d);
-		// cca = new CobbleCeilingAngle(this, "Cobblestone Ceiling Angle", texture, cobble, d);
-		// glca = new GlassCeilingAngle(this, "Glass Ceiling Angle", texture, glass, d);
-		// ssca = new SandstoneCeilingAngle(this, "Sandstone Ceiling Angle", texture, sandstone, d);
-		// dirca = new DirtCeilingAngle(this, "Dirt Ceiling Angle", texture, dirt, d);
-		// stca = new StoneCeilingAngle(this, "Stone Ceiling Angle", texture, stone, d);
-		// saca = new SandCeilingAngle(this, "Sand Ceiling Angle", texture, sand, d);
-		// snca = new SnowCeilingAngle(this, "Snow Ceiling Angle", texture, snow, d);
-		// grasca = new GrassCeilingAngle(this, "Grass Ceiling Angle", texture, grass, d);
-		// bca = new BricksCeilingAngle(this, "Bricks Ceiling Angle", texture, bricks, d);
-		// gravca = new GravelCeilingAngle(this, "Gravel Ceiling Angle", texture, gravel, d);
-		// goca = new GoldCeilingAngle(this, "Gold Ceiling Angle", texture, gold, d);
-		// ica = new IronCeilingAngle(this, "Iron Ceiling Angle", texture, iron, d);
-		// oca = new ObsidianCeilingAngle(this, "Obisidian Ceiling Angle", texture, obsidian, d);
-		// diaca = new DiamondCeilingAngle(this, "Diamond Ceiling Angle", texture, diamond, d);
-		// nca = new NetherbrickCeilingAngle(this, "Netherbrick Ceiling Angle", texture, netherbrick, d);
+		// wca = new WoodenCeilingAngle(this, "Wooden Ceiling Angle", texture,
+		// wood, d);
+		// cca = new CobbleCeilingAngle(this, "Cobblestone Ceiling Angle",
+		// texture, cobble, d);
+		// glca = new GlassCeilingAngle(this, "Glass Ceiling Angle", texture,
+		// glass, d);
+		// ssca = new SandstoneCeilingAngle(this, "Sandstone Ceiling Angle",
+		// texture, sandstone, d);
+		// dirca = new DirtCeilingAngle(this, "Dirt Ceiling Angle", texture,
+		// dirt, d);
+		// stca = new StoneCeilingAngle(this, "Stone Ceiling Angle", texture,
+		// stone, d);
+		// saca = new SandCeilingAngle(this, "Sand Ceiling Angle", texture,
+		// sand, d);
+		// snca = new SnowCeilingAngle(this, "Snow Ceiling Angle", texture,
+		// snow, d);
+		// grasca = new GrassCeilingAngle(this, "Grass Ceiling Angle", texture,
+		// grass, d);
+		// bca = new BricksCeilingAngle(this, "Bricks Ceiling Angle", texture,
+		// bricks, d);
+		// gravca = new GravelCeilingAngle(this, "Gravel Ceiling Angle",
+		// texture, gravel, d);
+		// goca = new GoldCeilingAngle(this, "Gold Ceiling Angle", texture,
+		// gold, d);
+		// ica = new IronCeilingAngle(this, "Iron Ceiling Angle", texture, iron,
+		// d);
+		// oca = new ObsidianCeilingAngle(this, "Obisidian Ceiling Angle",
+		// texture, obsidian, d);
+		// diaca = new DiamondCeilingAngle(this, "Diamond Ceiling Angle",
+		// texture, diamond, d);
+		// nca = new NetherbrickCeilingAngle(this, "Netherbrick Ceiling Angle",
+		// texture, netherbrick, d);
 	}
 
 	public void setupSlantedCorners() {
-		// wsc = new WoodenSlantedCorner(this, "Wooden Slanted Corner", texture, wood);
-		// csc = new CobbleSlantedCorner(this, "Cobblestone Slanted Corner", texture, cobble);
-		// glsc = new GlassSlantedCorner(this, "Glass Slanted Corner", texture, glass);
-		// sssc = new SandstoneSlantedCorner(this, "Sandstone Slanted Corner", texture, sandstone);
-		// dirsc = new DirtSlantedCorner(this, "Dirt Slanted Corner", texture, dirt);
-		// stsc = new StoneSlantedCorner(this, "Stone Slanted Corner", texture, stone);
-		// sasc = new SandSlantedCorner(this, "Sand Slanted Corner", texture, sand);
-		// snsc = new SnowSlantedCorner(this, "Snow Slanted Corner", texture, snow);
-		// grassc = new GrassSlantedCorner(this, "Grass Slanted Corner", texture, grass);
-		// bsc = new BricksSlantedCorner(this, "Bricks Slanted Corner", texture, bricks);
-		// gravsc = new GravelSlantedCorner(this, "Gravel Slanted Corner", texture, gravel);
-		// gosc = new GoldSlantedCorner(this, "Gold Slanted Corner", texture, gold);
-		// isc = new IronSlantedCorner(this, "Iron Slanted Corner", texture, iron);
-		// osc = new ObsidianSlantedCorner(this, "Obisidian Slanted Corner", texture, obsidian);
-		// diasc = new DiamondSlantedCorner(this, "Diamond Slanted Corner", texture, diamond);
-		// nsc = new NetherbrickSlantedCorner(this, "Netherbrick Slanted Corner", texture, netherbrick);
+		// wsc = new WoodenSlantedCorner(this, "Wooden Slanted Corner", texture,
+		// wood);
+		// csc = new CobbleSlantedCorner(this, "Cobblestone Slanted Corner",
+		// texture, cobble);
+		// glsc = new GlassSlantedCorner(this, "Glass Slanted Corner", texture,
+		// glass);
+		// sssc = new SandstoneSlantedCorner(this, "Sandstone Slanted Corner",
+		// texture, sandstone);
+		// dirsc = new DirtSlantedCorner(this, "Dirt Slanted Corner", texture,
+		// dirt);
+		// stsc = new StoneSlantedCorner(this, "Stone Slanted Corner", texture,
+		// stone);
+		// sasc = new SandSlantedCorner(this, "Sand Slanted Corner", texture,
+		// sand);
+		// snsc = new SnowSlantedCorner(this, "Snow Slanted Corner", texture,
+		// snow);
+		// grassc = new GrassSlantedCorner(this, "Grass Slanted Corner",
+		// texture, grass);
+		// bsc = new BricksSlantedCorner(this, "Bricks Slanted Corner", texture,
+		// bricks);
+		// gravsc = new GravelSlantedCorner(this, "Gravel Slanted Corner",
+		// texture, gravel);
+		// gosc = new GoldSlantedCorner(this, "Gold Slanted Corner", texture,
+		// gold);
+		// isc = new IronSlantedCorner(this, "Iron Slanted Corner", texture,
+		// iron);
+		// osc = new ObsidianSlantedCorner(this, "Obisidian Slanted Corner",
+		// texture, obsidian);
+		// diasc = new DiamondSlantedCorner(this, "Diamond Slanted Corner",
+		// texture, diamond);
+		// nsc = new NetherbrickSlantedCorner(this,
+		// "Netherbrick Slanted Corner", texture, netherbrick);
 	}
 
 	public void setupCeilingSlantedCorners() {
-		// wcsc = new WoodenCeilingSlantedCorner(this, "Wooden Ceiling Slanted Corner", texture, wood);
-		// ccsc = new CobbleCeilingSlantedCorner(this, "Cobblestone Ceiling Slanted Corner", texture, cobble);
-		// glcsc = new GlassCeilingSlantedCorner(this, "Glass Ceiling Slanted Corner", texture, glass);
-		// sscsc = new SandstoneCeilingSlantedCorner(this, "Sandstone Ceiling Slanted Corner", texture, sandstone);
-		// dircsc = new DirtCeilingSlantedCorner(this, "Dirt Ceiling Slanted Corner", texture, dirt);
-		// stcsc = new StoneCeilingSlantedCorner(this, "Stone Ceiling Slanted Corner", texture, stone);
-		// sacsc = new SandCeilingSlantedCorner(this, "Sand Ceiling Slanted Corner", texture, sand);
-		// sncsc = new SnowCeilingSlantedCorner(this, "Snow Ceiling Slanted Corner", texture, snow);
-		// grascsc = new GrassCeilingSlantedCorner(this, "Grass Ceiling Slanted Corner", texture, grass);
-		// bcsc = new BricksCeilingSlantedCorner(this, "Bricks Ceiling Slanted Corner", texture, bricks);
-		// gravcsc = new GravelCeilingSlantedCorner(this, "Gravel Ceiling Slanted Corner", texture, gravel);
-		// gocsc = new GoldCeilingSlantedCorner(this, "Gold Ceiling Slanted Corner", texture, gold);
-		// icsc = new IronCeilingSlantedCorner(this, "Iron Ceiling Slanted Corner", texture, iron);
-		// ocsc = new ObsidianCeilingSlantedCorner(this, "Obisidian Ceiling Slanted Corner", texture, obsidian);
-		// diacsc = new DiamondCeilingSlantedCorner(this, "Diamond Ceiling Slanted Corner", texture, diamond);
-		// ncsc = new NetherbrickCeilingSlantedCorner(this, "Netherbrick Ceiling Slanted Corner", texture, netherbrick);
+		// wcsc = new WoodenCeilingSlantedCorner(this,
+		// "Wooden Ceiling Slanted Corner", texture, wood);
+		// ccsc = new CobbleCeilingSlantedCorner(this,
+		// "Cobblestone Ceiling Slanted Corner", texture, cobble);
+		// glcsc = new GlassCeilingSlantedCorner(this,
+		// "Glass Ceiling Slanted Corner", texture, glass);
+		// sscsc = new SandstoneCeilingSlantedCorner(this,
+		// "Sandstone Ceiling Slanted Corner", texture, sandstone);
+		// dircsc = new DirtCeilingSlantedCorner(this,
+		// "Dirt Ceiling Slanted Corner", texture, dirt);
+		// stcsc = new StoneCeilingSlantedCorner(this,
+		// "Stone Ceiling Slanted Corner", texture, stone);
+		// sacsc = new SandCeilingSlantedCorner(this,
+		// "Sand Ceiling Slanted Corner", texture, sand);
+		// sncsc = new SnowCeilingSlantedCorner(this,
+		// "Snow Ceiling Slanted Corner", texture, snow);
+		// grascsc = new GrassCeilingSlantedCorner(this,
+		// "Grass Ceiling Slanted Corner", texture, grass);
+		// bcsc = new BricksCeilingSlantedCorner(this,
+		// "Bricks Ceiling Slanted Corner", texture, bricks);
+		// gravcsc = new GravelCeilingSlantedCorner(this,
+		// "Gravel Ceiling Slanted Corner", texture, gravel);
+		// gocsc = new GoldCeilingSlantedCorner(this,
+		// "Gold Ceiling Slanted Corner", texture, gold);
+		// icsc = new IronCeilingSlantedCorner(this,
+		// "Iron Ceiling Slanted Corner", texture, iron);
+		// ocsc = new ObsidianCeilingSlantedCorner(this,
+		// "Obisidian Ceiling Slanted Corner", texture, obsidian);
+		// diacsc = new DiamondCeilingSlantedCorner(this,
+		// "Diamond Ceiling Slanted Corner", texture, diamond);
+		// ncsc = new NetherbrickCeilingSlantedCorner(this,
+		// "Netherbrick Ceiling Slanted Corner", texture, netherbrick);
 	}
 
 	public void setupObliqueSlopes() {
-		// wos = new WoodenObliqueSlope(this, "Wooden Oblique Slope", texture, wood);
-		// cos = new CobbleObliqueSlope(this, "Cobblestone Oblique Slope", texture, cobble);
-		// glos = new GlassObliqueSlope(this, "Glass Oblique Slope", texture, glass);
-		// ssos = new SandstoneObliqueSlope(this, "Sandstone Oblique Slope", texture, sandstone);
-		// diros = new DirtObliqueSlope(this, "Dirt Oblique Slope", texture, dirt);
-		// stos = new StoneObliqueSlope(this, "Stone Oblique Slope", texture, stone);
-		// saos = new SandObliqueSlope(this, "Sand Oblique Slope", texture, sand);
-		// snos = new SnowObliqueSlope(this, "Snow Oblique Slope", texture, snow);
-		// grasos = new GrassObliqueSlope(this, "Grass Oblique Slope", texture, grass);
-		// bos = new BricksObliqueSlope(this, "Bricks Oblique Slope", texture, bricks);
-		// gravos = new GravelObliqueSlope(this, "Gravel Oblique Slope", texture, gravel);
-		// goos = new GoldObliqueSlope(this, "Gold Oblique Slope", texture, gold);
-		// ios = new IronObliqueSlope(this, "Iron Oblique Slope", texture, iron);
-		// oos = new ObsidianObliqueSlope(this, "Obisidian Oblique Slope", texture, obsidian);
-		// diaos = new DiamondObliqueSlope(this, "Diamond Oblique Slope", texture, diamond);
-		// nos = new NetherbrickObliqueSlope(this, "Netherbrick Oblique Slope", texture, netherbrick);
+		// wos = new WoodenObliqueSlope(this, "Wooden Oblique Slope", texture,
+		// wood);
+		// cos = new CobbleObliqueSlope(this, "Cobblestone Oblique Slope",
+		// texture, cobble);
+		// glos = new GlassObliqueSlope(this, "Glass Oblique Slope", texture,
+		// glass);
+		// ssos = new SandstoneObliqueSlope(this, "Sandstone Oblique Slope",
+		// texture, sandstone);
+		// diros = new DirtObliqueSlope(this, "Dirt Oblique Slope", texture,
+		// dirt);
+		// stos = new StoneObliqueSlope(this, "Stone Oblique Slope", texture,
+		// stone);
+		// saos = new SandObliqueSlope(this, "Sand Oblique Slope", texture,
+		// sand);
+		// snos = new SnowObliqueSlope(this, "Snow Oblique Slope", texture,
+		// snow);
+		// grasos = new GrassObliqueSlope(this, "Grass Oblique Slope", texture,
+		// grass);
+		// bos = new BricksObliqueSlope(this, "Bricks Oblique Slope", texture,
+		// bricks);
+		// gravos = new GravelObliqueSlope(this, "Gravel Oblique Slope",
+		// texture, gravel);
+		// goos = new GoldObliqueSlope(this, "Gold Oblique Slope", texture,
+		// gold);
+		// ios = new IronObliqueSlope(this, "Iron Oblique Slope", texture,
+		// iron);
+		// oos = new ObsidianObliqueSlope(this, "Obisidian Oblique Slope",
+		// texture, obsidian);
+		// diaos = new DiamondObliqueSlope(this, "Diamond Oblique Slope",
+		// texture, diamond);
+		// nos = new NetherbrickObliqueSlope(this, "Netherbrick Oblique Slope",
+		// texture, netherbrick);
 	}
 
 	public void setupInvertedObliqueSlopes() {
-		// wios = new WoodenInvertedObliqueSlope(this, "Wooden Inverted Oblique Slope", texture, wood);
-		// cios = new CobbleInvertedObliqueSlope(this, "Cobblestone Inverted Oblique Slope", texture, cobble);
-		// glios = new GlassInvertedObliqueSlope(this, "Glass Inverted Oblique Slope", texture, glass);
-		// ssios = new SandstoneInvertedObliqueSlope(this, "Sandstone Inverted Oblique Slope", texture, sandstone);
-		// dirios = new DirtInvertedObliqueSlope(this, "Dirt Inverted Oblique Slope", texture, dirt);
-		// stios = new StoneInvertedObliqueSlope(this, "Stone Inverted Oblique Slope", texture, stone);
-		// saios = new SandInvertedObliqueSlope(this, "Sand Inverted Oblique Slope", texture, sand);
-		// snios = new SnowInvertedObliqueSlope(this, "Snow Inverted Oblique Slope", texture, snow);
-		// grasios = new GrassInvertedObliqueSlope(this, "Grass Inverted Oblique Slope", texture, grass);
-		// bios = new BricksInvertedObliqueSlope(this, "Bricks Inverted Oblique Slope", texture, bricks);
-		// gravios = new GravelInvertedObliqueSlope(this, "Gravel Inverted Oblique Slope", texture, gravel);
-		// goios = new GoldInvertedObliqueSlope(this, "Gold Inverted Oblique Slope", texture, gold);
-		// iios = new IronInvertedObliqueSlope(this, "Iron Inverted Oblique Slope", texture, iron);
-		// oios = new ObsidianInvertedObliqueSlope(this, "Obisidian Inverted Oblique Slope", texture, obsidian);
-		// diaios = new DiamondInvertedObliqueSlope(this, "Diamond Inverted Oblique Slope", texture, diamond);
-		// nios = new NetherbrickInvertedObliqueSlope(this, "Netherbrick Inverted Oblique Slope", texture, netherbrick);
+		// wios = new WoodenInvertedObliqueSlope(this,
+		// "Wooden Inverted Oblique Slope", texture, wood);
+		// cios = new CobbleInvertedObliqueSlope(this,
+		// "Cobblestone Inverted Oblique Slope", texture, cobble);
+		// glios = new GlassInvertedObliqueSlope(this,
+		// "Glass Inverted Oblique Slope", texture, glass);
+		// ssios = new SandstoneInvertedObliqueSlope(this,
+		// "Sandstone Inverted Oblique Slope", texture, sandstone);
+		// dirios = new DirtInvertedObliqueSlope(this,
+		// "Dirt Inverted Oblique Slope", texture, dirt);
+		// stios = new StoneInvertedObliqueSlope(this,
+		// "Stone Inverted Oblique Slope", texture, stone);
+		// saios = new SandInvertedObliqueSlope(this,
+		// "Sand Inverted Oblique Slope", texture, sand);
+		// snios = new SnowInvertedObliqueSlope(this,
+		// "Snow Inverted Oblique Slope", texture, snow);
+		// grasios = new GrassInvertedObliqueSlope(this,
+		// "Grass Inverted Oblique Slope", texture, grass);
+		// bios = new BricksInvertedObliqueSlope(this,
+		// "Bricks Inverted Oblique Slope", texture, bricks);
+		// gravios = new GravelInvertedObliqueSlope(this,
+		// "Gravel Inverted Oblique Slope", texture, gravel);
+		// goios = new GoldInvertedObliqueSlope(this,
+		// "Gold Inverted Oblique Slope", texture, gold);
+		// iios = new IronInvertedObliqueSlope(this,
+		// "Iron Inverted Oblique Slope", texture, iron);
+		// oios = new ObsidianInvertedObliqueSlope(this,
+		// "Obisidian Inverted Oblique Slope", texture, obsidian);
+		// diaios = new DiamondInvertedObliqueSlope(this,
+		// "Diamond Inverted Oblique Slope", texture, diamond);
+		// nios = new NetherbrickInvertedObliqueSlope(this,
+		// "Netherbrick Inverted Oblique Slope", texture, netherbrick);
 	}
 
 	public void setupSlopesIntersections() {
-		// wsi = new WoodenSlopesIntersection(this, "Wooden SlopesPlugin Intersection", texture, wood);
-		// csi = new CobbleSlopesIntersection(this, "Cobblestone SlopesPlugin Intersection", texture, cobble);
-		// glsi = new GlassSlopesIntersection(this, "Glass SlopesPlugin Intersection", texture, glass);
-		// sssi = new SandstoneSlopesIntersection(this, "Sandstone SlopesPlugin Intersection", texture, sandstone);
-		// dirsi = new DirtSlopesIntersection(this, "Dirt SlopesPlugin Intersection", texture, dirt);
-		// stsi = new StoneSlopesIntersection(this, "Stone SlopesPlugin Intersection", texture, stone);
-		// sasi = new SandSlopesIntersection(this, "Sand SlopesPlugin Intersection", texture, sand);
-		// snsi = new SnowSlopesIntersection(this, "Snow SlopesPlugin Intersection", texture, snow);
-		// grassi = new GrassSlopesIntersection(this, "Grass SlopesPlugin Intersection", texture, grass);
-		// bsi = new BricksSlopesIntersection(this, "Bricks SlopesPlugin Intersection", texture, bricks);
-		// gravsi = new GravelSlopesIntersection(this, "Gravel SlopesPlugin Intersection", texture, gravel);
-		// gosi = new GoldSlopesIntersection(this, "Gold SlopesPlugin Intersection", texture, gold);
-		// isi = new IronSlopesIntersection(this, "Iron SlopesPlugin Intersection", texture, iron);
-		// osi = new ObsidianSlopesIntersection(this, "Obisidian SlopesPlugin Intersection", texture, obsidian);
-		// diasi = new DiamondSlopesIntersection(this, "Diamond SlopesPlugin Intersection", texture, diamond);
-		// nsi = new NetherbrickSlopesIntersection(this, "Netherbrick SlopesPlugin Intersection", texture, netherbrick);
+		// wsi = new WoodenSlopesIntersection(this,
+		// "Wooden SlopesPlugin Intersection", texture, wood);
+		// csi = new CobbleSlopesIntersection(this,
+		// "Cobblestone SlopesPlugin Intersection", texture, cobble);
+		// glsi = new GlassSlopesIntersection(this,
+		// "Glass SlopesPlugin Intersection", texture, glass);
+		// sssi = new SandstoneSlopesIntersection(this,
+		// "Sandstone SlopesPlugin Intersection", texture, sandstone);
+		// dirsi = new DirtSlopesIntersection(this,
+		// "Dirt SlopesPlugin Intersection", texture, dirt);
+		// stsi = new StoneSlopesIntersection(this,
+		// "Stone SlopesPlugin Intersection", texture, stone);
+		// sasi = new SandSlopesIntersection(this,
+		// "Sand SlopesPlugin Intersection", texture, sand);
+		// snsi = new SnowSlopesIntersection(this,
+		// "Snow SlopesPlugin Intersection", texture, snow);
+		// grassi = new GrassSlopesIntersection(this,
+		// "Grass SlopesPlugin Intersection", texture, grass);
+		// bsi = new BricksSlopesIntersection(this,
+		// "Bricks SlopesPlugin Intersection", texture, bricks);
+		// gravsi = new GravelSlopesIntersection(this,
+		// "Gravel SlopesPlugin Intersection", texture, gravel);
+		// gosi = new GoldSlopesIntersection(this,
+		// "Gold SlopesPlugin Intersection", texture, gold);
+		// isi = new IronSlopesIntersection(this,
+		// "Iron SlopesPlugin Intersection", texture, iron);
+		// osi = new ObsidianSlopesIntersection(this,
+		// "Obisidian SlopesPlugin Intersection", texture, obsidian);
+		// diasi = new DiamondSlopesIntersection(this,
+		// "Diamond SlopesPlugin Intersection", texture, diamond);
+		// nsi = new NetherbrickSlopesIntersection(this,
+		// "Netherbrick SlopesPlugin Intersection", texture, netherbrick);
 	}
 
 	public void setupInvertedSlopesIntersections() {
-		// wisi = new WoodenInvertedSlopesIntersection(this, "Wooden Inverted SlopesPlugin Intersection", texture, wood);
-		// cisi = new CobbleInvertedSlopesIntersection(this, "Cobblestone Inverted SlopesPlugin Intersection", texture, cobble);
-		// glisi = new GlassInvertedSlopesIntersection(this, "Glass Inverted SlopesPlugin Intersection", texture, glass);
-		// ssisi = new SandstoneInvertedSlopesIntersection(this, "Sandstone Inverted SlopesPlugin Intersection", texture, sandstone);
-		// dirisi = new DirtInvertedSlopesIntersection(this, "Dirt Inverted SlopesPlugin Intersection", texture, dirt);
-		// stisi = new StoneInvertedSlopesIntersection(this, "Stone Inverted SlopesPlugin Intersection", texture, stone);
-		// saisi = new SandInvertedSlopesIntersection(this, "Sand Inverted SlopesPlugin Intersection", texture, sand);
-		// snisi = new SnowInvertedSlopesIntersection(this, "Snow Inverted SlopesPlugin Intersection", texture, snow);
-		// grasisi = new GrassInvertedSlopesIntersection(this, "Grass Inverted SlopesPlugin Intersection", texture, grass);
-		// bisi = new BricksInvertedSlopesIntersection(this, "Bricks Inverted SlopesPlugin Intersection", texture, bricks);
-		// gravisi = new GravelInvertedSlopesIntersection(this, "Gravel Inverted SlopesPlugin Intersection", texture, gravel);
-		// goisi = new GoldInvertedSlopesIntersection(this, "Gold Inverted SlopesPlugin Intersection", texture, gold);
-		// iisi = new IronInvertedSlopesIntersection(this, "Iron Inverted SlopesPlugin Intersection", texture, iron);
-		// oisi = new ObsidianInvertedSlopesIntersection(this, "Obisidian Inverted SlopesPlugin Intersection", texture, obsidian);
-		// diaisi = new DiamondInvertedSlopesIntersection(this, "Diamond Inverted SlopesPlugin Intersection", texture, diamond);
-		// nisi = new NetherbrickInvertedSlopesIntersection(this, "Netherbrick Inverted SlopesPlugin Intersection", texture, netherbrick);
-	}
-
-	public void setupSlopedFloorRecipes() {
-		// final ItemStack wsfis = new SpoutItemStack(wsf, 4);
-		// final SpoutShapedRecipe wsfr = new SpoutShapedRecipe(wsfis);
-		// wsfr.shape("A  ", " A ", "AAA");
-		// wsfr.setIngredient('A', MaterialData.wood);
-		// SpoutManager.getMaterialManager().registerSpoutRecipe(wsfr);
-		//
-		// final ItemStack csfis = new SpoutItemStack(csf, 4);
-		// final SpoutShapedRecipe csfr = new SpoutShapedRecipe(csfis);
-		// csfr.shape("A  ", " A ", "AAA");
-		// csfr.setIngredient('A', MaterialData.cobblestone);
-		// SpoutManager.getMaterialManager().registerSpoutRecipe(csfr);
-		//
-		// final ItemStack glsfis = new SpoutItemStack(glsf, 4);
-		// final SpoutShapedRecipe glsfr = new SpoutShapedRecipe(glsfis);
-		// glsfr.shape("A  ", " A ", "AAA");
-		// glsfr.setIngredient('A', MaterialData.glass);
-		// SpoutManager.getMaterialManager().registerSpoutRecipe(glsfr);
-		//
-		// final ItemStack sssfis = new SpoutItemStack(sssf, 4);
-		// final SpoutShapedRecipe sssfr = new SpoutShapedRecipe(sssfis);
-		// sssfr.shape("A  ", " A ", "AAA");
-		// sssfr.setIngredient('A', MaterialData.sandstone);
-		// SpoutManager.getMaterialManager().registerSpoutRecipe(sssfr);
-		//
-		// final ItemStack dirsfis = new SpoutItemStack(dirsf, 4);
-		// final SpoutShapedRecipe dirsfr = new SpoutShapedRecipe(dirsfis);
-		// dirsfr.shape("A  ", " A ", "AAA");
-		// dirsfr.setIngredient('A', MaterialData.dirt);
-		// SpoutManager.getMaterialManager().registerSpoutRecipe(dirsfr);
-		//
-		// final ItemStack stsfis = new SpoutItemStack(stsf, 4);
-		// final SpoutShapedRecipe stsfr = new SpoutShapedRecipe(stsfis);
-		// stsfr.shape("A  ", " A ", "AAA");
-		// stsfr.setIngredient('A', MaterialData.stone);
-		// SpoutManager.getMaterialManager().registerSpoutRecipe(stsfr);
-		//
-		// final ItemStack sasfis = new SpoutItemStack(sasf, 4);
-		// final SpoutShapedRecipe sasfr = new SpoutShapedRecipe(sasfis);
-		// sasfr.shape("A  ", " A ", "AAA");
-		// sasfr.setIngredient('A', MaterialData.sand);
-		// SpoutManager.getMaterialManager().registerSpoutRecipe(sasfr);
-		//
-		// final ItemStack snsfis = new SpoutItemStack(snsf, 4);
-		// final SpoutShapedRecipe snsfr = new SpoutShapedRecipe(snsfis);
-		// snsfr.shape("A  ", " A ", "AAA");
-		// snsfr.setIngredient('A', MaterialData.snow);
-		// SpoutManager.getMaterialManager().registerSpoutRecipe(snsfr);
-		//
-		// final ItemStack grassfis = new SpoutItemStack(grassf, 4);
-		// final SpoutShapedRecipe grassfr = new SpoutShapedRecipe(grassfis);
-		// grassfr.shape("A  ", " A ", "AAA");
-		// grassfr.setIngredient('A', MaterialData.grass);
-		// SpoutManager.getMaterialManager().registerSpoutRecipe(grassfr);
-		//
-		// final ItemStack bsfis = new SpoutItemStack(bsf, 4);
-		// final SpoutShapedRecipe bsfr = new SpoutShapedRecipe(bsfis);
-		// bsfr.shape("A  ", " A ", "AAA");
-		// bsfr.setIngredient('A', MaterialData.brick);
-		// SpoutManager.getMaterialManager().registerSpoutRecipe(bsfr);
-		//
-		// final ItemStack gravsfis = new SpoutItemStack(gravsf, 4);
-		// final SpoutShapedRecipe gravsfr = new SpoutShapedRecipe(gravsfis);
-		// gravsfr.shape("A  ", " A ", "AAA");
-		// gravsfr.setIngredient('A', MaterialData.gravel);
-		// SpoutManager.getMaterialManager().registerSpoutRecipe(gravsfr);
-		//
-		// final ItemStack gosfis = new SpoutItemStack(gosf, 4);
-		// final SpoutShapedRecipe gosfr = new SpoutShapedRecipe(gosfis);
-		// gosfr.shape("A  ", " A ", "AAA");
-		// gosfr.setIngredient('A', MaterialData.goldBlock);
-		// SpoutManager.getMaterialManager().registerSpoutRecipe(gosfr);
-		//
-		// final ItemStack isfis = new SpoutItemStack(isf, 4);
-		// final SpoutShapedRecipe isfr = new SpoutShapedRecipe(isfis);
-		// isfr.shape("A  ", " A ", "AAA");
-		// isfr.setIngredient('A', MaterialData.ironBlock);
-		// SpoutManager.getMaterialManager().registerSpoutRecipe(isfr);
-		//
-		// final ItemStack osfis = new SpoutItemStack(osf, 4);
-		// final SpoutShapedRecipe osfr = new SpoutShapedRecipe(osfis);
-		// osfr.shape("A  ", " A ", "AAA");
-		// osfr.setIngredient('A', MaterialData.obsidian);
-		// SpoutManager.getMaterialManager().registerSpoutRecipe(osfr);
-		//
-		// final ItemStack diasfis = new SpoutItemStack(diasf, 4);
-		// final SpoutShapedRecipe diasfr = new SpoutShapedRecipe(diasfis);
-		// diasfr.shape("A  ", " A ", "AAA");
-		// diasfr.setIngredient('A', MaterialData.diamondBlock);
-		// SpoutManager.getMaterialManager().registerSpoutRecipe(diasfr);
-		//
-		// final ItemStack nsfis = new SpoutItemStack(nsf, 4);
-		// final SpoutShapedRecipe nsfr = new SpoutShapedRecipe(nsfis);
-		// nsfr.shape("A  ", " A ", "AAA");
-		// nsfr.setIngredient('A', MaterialData.netherBrick);
-		// SpoutManager.getMaterialManager().registerSpoutRecipe(nsfr);
+		// wisi = new WoodenInvertedSlopesIntersection(this,
+		// "Wooden Inverted SlopesPlugin Intersection", texture, wood);
+		// cisi = new CobbleInvertedSlopesIntersection(this,
+		// "Cobblestone Inverted SlopesPlugin Intersection", texture, cobble);
+		// glisi = new GlassInvertedSlopesIntersection(this,
+		// "Glass Inverted SlopesPlugin Intersection", texture, glass);
+		// ssisi = new SandstoneInvertedSlopesIntersection(this,
+		// "Sandstone Inverted SlopesPlugin Intersection", texture, sandstone);
+		// dirisi = new DirtInvertedSlopesIntersection(this,
+		// "Dirt Inverted SlopesPlugin Intersection", texture, dirt);
+		// stisi = new StoneInvertedSlopesIntersection(this,
+		// "Stone Inverted SlopesPlugin Intersection", texture, stone);
+		// saisi = new SandInvertedSlopesIntersection(this,
+		// "Sand Inverted SlopesPlugin Intersection", texture, sand);
+		// snisi = new SnowInvertedSlopesIntersection(this,
+		// "Snow Inverted SlopesPlugin Intersection", texture, snow);
+		// grasisi = new GrassInvertedSlopesIntersection(this,
+		// "Grass Inverted SlopesPlugin Intersection", texture, grass);
+		// bisi = new BricksInvertedSlopesIntersection(this,
+		// "Bricks Inverted SlopesPlugin Intersection", texture, bricks);
+		// gravisi = new GravelInvertedSlopesIntersection(this,
+		// "Gravel Inverted SlopesPlugin Intersection", texture, gravel);
+		// goisi = new GoldInvertedSlopesIntersection(this,
+		// "Gold Inverted SlopesPlugin Intersection", texture, gold);
+		// iisi = new IronInvertedSlopesIntersection(this,
+		// "Iron Inverted SlopesPlugin Intersection", texture, iron);
+		// oisi = new ObsidianInvertedSlopesIntersection(this,
+		// "Obisidian Inverted SlopesPlugin Intersection", texture, obsidian);
+		// diaisi = new DiamondInvertedSlopesIntersection(this,
+		// "Diamond Inverted SlopesPlugin Intersection", texture, diamond);
+		// nisi = new NetherbrickInvertedSlopesIntersection(this,
+		// "Netherbrick Inverted SlopesPlugin Intersection", texture,
+		// netherbrick);
 	}
 
 	public void setupSlopedCeilingRecipes() {
@@ -589,104 +556,6 @@ public class SlopesPlugin extends JavaPlugin {
 		// nscr.shape("AAA", " A ", "  A");
 		// nscr.setIngredient('A', MaterialData.netherBrick);
 		// SpoutManager.getMaterialManager().registerSpoutRecipe(nscr);
-	}
-
-	public void setupCornerRecipes() {
-		// final ItemStack wcis = new SpoutItemStack(wc, 4);
-		// final SpoutShapedRecipe wcr = new SpoutShapedRecipe(wcis);
-		// wcr.shape(" A ", " AA", " A ");
-		// wcr.setIngredient('A', MaterialData.wood);
-		// SpoutManager.getMaterialManager().registerSpoutRecipe(wcr);
-		//
-		// final ItemStack ccis = new SpoutItemStack(cc, 4);
-		// final SpoutShapedRecipe ccr = new SpoutShapedRecipe(ccis);
-		// ccr.shape(" A ", " AA", " A ");
-		// ccr.setIngredient('A', MaterialData.cobblestone);
-		// SpoutManager.getMaterialManager().registerSpoutRecipe(ccr);
-		//
-		// final ItemStack glcis = new SpoutItemStack(glc, 4);
-		// final SpoutShapedRecipe glcr = new SpoutShapedRecipe(glcis);
-		// glcr.shape(" A ", " AA", " A ");
-		// glcr.setIngredient('A', MaterialData.glass);
-		// SpoutManager.getMaterialManager().registerSpoutRecipe(glcr);
-		//
-		// final ItemStack sscis = new SpoutItemStack(ssc, 4);
-		// final SpoutShapedRecipe sscr = new SpoutShapedRecipe(sscis);
-		// sscr.shape(" A ", " AA", " A ");
-		// sscr.setIngredient('A', MaterialData.sandstone);
-		// SpoutManager.getMaterialManager().registerSpoutRecipe(sscr);
-		//
-		// final ItemStack dircis = new SpoutItemStack(dirc, 4);
-		// final SpoutShapedRecipe dircr = new SpoutShapedRecipe(dircis);
-		// dircr.shape(" A ", " AA", " A ");
-		// dircr.setIngredient('A', MaterialData.dirt);
-		// SpoutManager.getMaterialManager().registerSpoutRecipe(dircr);
-		//
-		// final ItemStack stcis = new SpoutItemStack(stc, 4);
-		// final SpoutShapedRecipe stcr = new SpoutShapedRecipe(stcis);
-		// stcr.shape(" A ", " AA", " A ");
-		// stcr.setIngredient('A', MaterialData.stone);
-		// SpoutManager.getMaterialManager().registerSpoutRecipe(stcr);
-		//
-		// final ItemStack sacis = new SpoutItemStack(sac, 4);
-		// final SpoutShapedRecipe sacr = new SpoutShapedRecipe(sacis);
-		// sacr.shape(" A ", " AA", " A ");
-		// sacr.setIngredient('A', MaterialData.sand);
-		// SpoutManager.getMaterialManager().registerSpoutRecipe(sacr);
-		//
-		// final ItemStack sncis = new SpoutItemStack(snc, 4);
-		// final SpoutShapedRecipe sncr = new SpoutShapedRecipe(sncis);
-		// sncr.shape(" A ", " AA", " A ");
-		// sncr.setIngredient('A', MaterialData.snow);
-		// SpoutManager.getMaterialManager().registerSpoutRecipe(sncr);
-		//
-		// final ItemStack grascis = new SpoutItemStack(grasc, 4);
-		// final SpoutShapedRecipe grascr = new SpoutShapedRecipe(grascis);
-		// grascr.shape(" A ", " AA", " A ");
-		// grascr.setIngredient('A', MaterialData.grass);
-		// SpoutManager.getMaterialManager().registerSpoutRecipe(grascr);
-		//
-		// final ItemStack bcis = new SpoutItemStack(bc, 4);
-		// final SpoutShapedRecipe bcr = new SpoutShapedRecipe(bcis);
-		// bcr.shape(" A ", " AA", " A ");
-		// bcr.setIngredient('A', MaterialData.brick);
-		// SpoutManager.getMaterialManager().registerSpoutRecipe(bcr);
-		//
-		// final ItemStack gravcis = new SpoutItemStack(gravc, 4);
-		// final SpoutShapedRecipe gravcr = new SpoutShapedRecipe(gravcis);
-		// gravcr.shape(" A ", " AA", " A ");
-		// gravcr.setIngredient('A', MaterialData.gravel);
-		// SpoutManager.getMaterialManager().registerSpoutRecipe(gravcr);
-		//
-		// final ItemStack gocis = new SpoutItemStack(goc, 4);
-		// final SpoutShapedRecipe gocr = new SpoutShapedRecipe(gocis);
-		// gocr.shape(" A ", " AA", " A ");
-		// gocr.setIngredient('A', MaterialData.goldBlock);
-		// SpoutManager.getMaterialManager().registerSpoutRecipe(gocr);
-		//
-		// final ItemStack icis = new SpoutItemStack(ic, 4);
-		// final SpoutShapedRecipe icr = new SpoutShapedRecipe(icis);
-		// icr.shape(" A ", " AA", " A ");
-		// icr.setIngredient('A', MaterialData.ironBlock);
-		// SpoutManager.getMaterialManager().registerSpoutRecipe(icr);
-		//
-		// final ItemStack ocis = new SpoutItemStack(oc, 4);
-		// final SpoutShapedRecipe ocr = new SpoutShapedRecipe(ocis);
-		// ocr.shape(" A ", " AA", " A ");
-		// ocr.setIngredient('A', MaterialData.obsidian);
-		// SpoutManager.getMaterialManager().registerSpoutRecipe(ocr);
-		//
-		// final ItemStack diacis = new SpoutItemStack(diac, 4);
-		// final SpoutShapedRecipe diacr = new SpoutShapedRecipe(diacis);
-		// diacr.shape(" A ", " AA", " A ");
-		// diacr.setIngredient('A', MaterialData.diamondBlock);
-		// SpoutManager.getMaterialManager().registerSpoutRecipe(diacr);
-		//
-		// final ItemStack ncis = new SpoutItemStack(nc, 4);
-		// final SpoutShapedRecipe ncr = new SpoutShapedRecipe(ncis);
-		// ncr.shape(" A ", " AA", " A ");
-		// ncr.setIngredient('A', MaterialData.netherBrick);
-		// SpoutManager.getMaterialManager().registerSpoutRecipe(ncr);
 	}
 
 	public void setupSlopedAngleRecipes() {

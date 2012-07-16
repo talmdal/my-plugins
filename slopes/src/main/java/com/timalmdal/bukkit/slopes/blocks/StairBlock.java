@@ -25,20 +25,19 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.getspout.spoutapi.block.design.Texture;
 
-import com.timalmdal.bukkit.slopes.SlopesPlugin.SlopeSubTexture;
-import com.timalmdal.bukkit.slopes.designers.CeilingStairsBlockDesign;
+import com.timalmdal.bukkit.slopes.designers.StairBlockDesign;
+import com.timalmdal.bukkit.slopes.util.SlopeSubTexture;
 
-public class CeilingStairsBlock extends AbstractSlopesBlock {
-	public static final String[] RECIPE = new String[] { " AA", "AA ", "A  " };
+public final class StairBlock extends AbstractBlock {
+	protected static final String[] RECIPE = new String[] { "A  ", "AA ", "AAA" };
 
-	public CeilingStairsBlock(final JavaPlugin plugin, final Texture texture, final SlopeSubTexture slopeTexture) {
-		super(plugin, slopeTexture.getDisplayName(" Ceiling Stairs"),
-				new CeilingStairsBlockDesign(plugin, texture, slopeTexture), texture, slopeTexture);
+	public StairBlock(final JavaPlugin plugin, final Texture texture, final SlopeSubTexture slopeTexture) {
+		super(plugin, slopeTexture.getDisplayName("%s Stairs"), new StairBlockDesign(plugin, texture, slopeTexture), texture, slopeTexture);
 		setFacingDirection(BlockFace.SOUTH);
 	}
 
 	@Override
 	public boolean isClimbable() {
-		return false;
+		return true;
 	}
 }

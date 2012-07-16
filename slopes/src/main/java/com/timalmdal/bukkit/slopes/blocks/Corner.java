@@ -21,23 +21,33 @@
  */
 package com.timalmdal.bukkit.slopes.blocks;
 
+import org.bukkit.World;
 import org.bukkit.block.BlockFace;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.getspout.spoutapi.block.design.Texture;
 
-import com.timalmdal.bukkit.slopes.SlopesPlugin.SlopeSubTexture;
-import com.timalmdal.bukkit.slopes.designers.StairsBlockDesign;
+import com.timalmdal.bukkit.slopes.designers.CornerDesign;
+import com.timalmdal.bukkit.slopes.util.SlopeSubTexture;
 
-public final class StairsBlock extends AbstractSlopesBlock {
-	protected static final String[] RECIPE = new String[] { "A  ", "AA ", "AAA" };
+public class Corner extends AbstractBlock {
+	public static final String[] RECIPE = new String[] { " A ", " AA", " A " };
 
-	public StairsBlock(final JavaPlugin plugin, final Texture texture, final SlopeSubTexture slopeTexture) {
-		super(plugin, slopeTexture.getDisplayName(" Stairs"), new StairsBlockDesign(plugin, texture, slopeTexture), texture, slopeTexture);
+	public Corner(final JavaPlugin plugin, final Texture texture, final SlopeSubTexture slopeTexture) {
+		super(plugin, slopeTexture.getDisplayName("%s Corner"),
+				new CornerDesign(plugin, texture, slopeTexture), texture, slopeTexture);
 		setFacingDirection(BlockFace.SOUTH);
 	}
 
 	@Override
 	public boolean isClimbable() {
-		return true;
+		return false;
 	}
+
+	@Override
+	public void onBlockPlace(final World world, final int x, final int y, final int z, final LivingEntity living) {
+		// TODO need to figure out which to place block (i.e. which corner
+		super.onBlockPlace(world, x, y, z, living);
+	}
+
 }

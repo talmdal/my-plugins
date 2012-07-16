@@ -1,4 +1,4 @@
-package com.timalmdal.bukkit.slopes.designers;
+package com.timalmdal.bukkit.slopes.util;
 
 import org.getspout.spoutapi.block.design.SubTexture;
 import org.getspout.spoutapi.block.design.Vertex;

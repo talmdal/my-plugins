@@ -8,14 +8,14 @@ import org.bukkit.plugin.Plugin;
 import org.getspout.spoutapi.block.design.Texture;
 import org.getspout.spoutapi.material.block.GenericCustomBlock;
 
-import com.timalmdal.bukkit.slopes.SlopesPlugin.SlopeSubTexture;
-import com.timalmdal.bukkit.slopes.designers.AbstractSlopesBlockDesign;
+import com.timalmdal.bukkit.slopes.designers.AbstractBlockDesign;
+import com.timalmdal.bukkit.slopes.util.SlopeSubTexture;
 
-public abstract class AbstractSlopesBlock extends GenericCustomBlock implements Directional, Climbable {
+public abstract class AbstractBlock extends GenericCustomBlock implements Directional, Climbable {
 
 	private BlockFace blockFacing;
 
-	public AbstractSlopesBlock(final Plugin plugin, final String displayName, final AbstractSlopesBlockDesign design, final Texture texture, final SlopeSubTexture slopeTexture) {
+	public AbstractBlock(final Plugin plugin, final String displayName, final AbstractBlockDesign design, final Texture texture, final SlopeSubTexture slopeTexture) {
 		super(plugin, displayName, false, design, true);
 		setFacingDirection(BlockFace.SOUTH);
 	}
@@ -96,7 +96,7 @@ public abstract class AbstractSlopesBlock extends GenericCustomBlock implements 
 	// // final double[] dist = getLocsDistance(locs, loc);
 	// // final int closeFace = getClosestFace(dist);
 	//
-	// StairsBlockDesign blockDesign;
+	// StairBlockDesign blockDesign;
 	//
 	// final BlockFace facing = playerFacing(living.getLocation().getYaw());
 	// getPlugin().getLogger().warning("onBlockPlace: Facing: " + facing);
@@ -107,16 +107,16 @@ public abstract class AbstractSlopesBlock extends GenericCustomBlock implements 
 	// switch (getDescendingDirection()) {
 	// default:
 	// case EAST:
-	// blockDesign = new StairsBlockDesign(getPlugin(), texture, subTexture, Direction.WEST);
+	// blockDesign = new StairBlockDesign(getPlugin(), texture, subTexture, Direction.WEST);
 	// break;
 	// case SOUTH:
-	// blockDesign = new StairsBlockDesign(getPlugin(), texture, subTexture, Direction.SOUTH);
+	// blockDesign = new StairBlockDesign(getPlugin(), texture, subTexture, Direction.SOUTH);
 	// break;
 	// case WEST:
-	// blockDesign = new StairsBlockDesign(getPlugin(), texture, subTexture, Direction.EAST);
+	// blockDesign = new StairBlockDesign(getPlugin(), texture, subTexture, Direction.EAST);
 	// break;
 	// case NORTH:
-	// blockDesign = new StairsBlockDesign(getPlugin(), texture, subTexture, Direction.NORTH);
+	// blockDesign = new StairBlockDesign(getPlugin(), texture, subTexture, Direction.NORTH);
 	// break;
 	// }
 	//
@@ -141,7 +141,7 @@ public abstract class AbstractSlopesBlock extends GenericCustomBlock implements 
 	//
 	// return locs;
 	// }
-	// final StairsBlockDesign stairsDesign = new StairsBlockDesign(plugin, texture, slopeTexture);
+	// final StairBlockDesign stairsDesign = new StairBlockDesign(plugin, texture, slopeTexture);
 	// this.setBlockDesign(stairsDesign.rotate(270), 0);
 	// this.setBlockDesign(stairsDesign, 1);
 	// this.setBlockDesign(stairsDesign.rotate(90), 2);

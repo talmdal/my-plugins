@@ -6,9 +6,11 @@ import org.getspout.spoutapi.block.design.GenericBlockDesign;
 import org.getspout.spoutapi.block.design.SubTexture;
 import org.getspout.spoutapi.block.design.Texture;
 
-import com.timalmdal.bukkit.slopes.SlopesPlugin.SlopeSubTexture;
+import com.timalmdal.bukkit.slopes.util.QuadList;
+import com.timalmdal.bukkit.slopes.util.SlopeSubTexture;
 
-public class AbstractSlopesBlockDesign extends GenericBlockDesign {
+
+public class AbstractBlockDesign extends GenericBlockDesign {
 
 	public static QuadList quadBuilder() {
 		return new QuadList();
@@ -16,7 +18,7 @@ public class AbstractSlopesBlockDesign extends GenericBlockDesign {
 
 	private final SubTexture subTexture;
 
-	public AbstractSlopesBlockDesign(final Plugin plugin, final Texture texture, final SlopeSubTexture slopeTexture) {
+	public AbstractBlockDesign(final Plugin plugin, final Texture texture, final SlopeSubTexture slopeTexture) {
 		setTexture(plugin, texture);
 		subTexture = texture.getSubTexture(slopeTexture.getTextureIndex());
 
