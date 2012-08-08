@@ -25,14 +25,14 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.getspout.spoutapi.block.design.Texture;
 
-import com.timalmdal.bukkit.slopes.designers.StairBlockDesign;
+import com.timalmdal.bukkit.slopes.designers.ObliqueSlopeDesign;
 import com.timalmdal.bukkit.slopes.util.SlopeSubTexture;
 
-public final class StairBlock extends AbstractBlock {
-	protected static final String[] RECIPE = new String[] { "A  ", "AA ", "AAA" };
+public final class ObliqueSlope extends AbstractBlock {
+	protected static final String[] RECIPE = new String[] { "  A", "AAA", "   " };
 
-	public StairBlock(final JavaPlugin plugin, final Texture texture, final SlopeSubTexture slopeTexture) {
-		super(plugin, slopeTexture.getDisplayName("%s Stairs"), new StairBlockDesign(plugin, texture, slopeTexture), texture, slopeTexture);
+	public ObliqueSlope(final JavaPlugin plugin, final Texture texture, final SlopeSubTexture slopeTexture) {
+		super(plugin, slopeTexture.getDisplayName("Oblique %s Slope"), new ObliqueSlopeDesign(plugin, texture, slopeTexture), texture, slopeTexture);
 		setFacingDirection(BlockFace.SOUTH);
 	}
 

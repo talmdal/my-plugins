@@ -30,23 +30,26 @@ import com.timalmdal.bukkit.slopes.util.QuadList;
 import com.timalmdal.bukkit.slopes.util.SlopeSubTexture;
 import com.timalmdal.bukkit.slopes.util.TextureOffset;
 
-public class SlopedAngleDesign extends AbstractBlockDesign {
-	static final QuadList QUAD_LIST_SOUTH = AbstractBlockDesign.quadBuilder()
+public class ObliqueSlopeDesign extends AbstractBlockDesign {
+	static final QuadList DEFAULT_INVENTORY = AbstractBlockDesign.quadBuilder()
 			.add(TextureOffset.Bottom,
 					new Point(0.0f, 0.0f, 1.0f), new Point(0.0f, 0.0f, 0.0f), new Point(1.0f, 0.0f, 0.0f), new Point(1.0f, 0.0f, 1.0f)) // bottom
-			.add(new Point(0.0f, 0.0f, 0.0f), new Point(0.0f, 1.0f, 0.0f), new Point(.001f, 1.0f, 0.0f), new Point(1.0f, 0.0f, 0.0f)) // north
-			.add(new Point(0.0f, 0.0f, 1.0f), new Point(0.0f, 1.0f, 0.001f), new Point(0.0f, 1.0f, 0.0f), new Point(0.0f, 0.0f, 0.0f)) // west
+			.add(new Point(0.0f, 0.0f, 0.0f), new Point(0.0f, 1.0f, 0.0f), new Point(1.0f, 1.0f, 0.0f), new Point(1.0f, 0.0f, 0.0f)) // north
+			.add(new Point(0.0f, 0.0f, 1.0f), new Point(0.0f, 1.0f, 1.0f), new Point(0.0f, 1.0f, 0.0f), new Point(0.0f, 0.0f, 0.0f)) // west
 			.add(TextureOffset.Top,
-					new Point(1.0f, 0.0f, 1.0f), new Point(0.0f, 1.0f, 0.0f), new Point(0.0f, 1.0f, 0.001f), new Point(0.0f, 0.0f, 1.0f)) // south
+					new Point(0.0f, 1.0f, 0.0f), new Point(0.0f, 1.0f, 1.0f), new Point(1.0f, 1.0f, 0.001f), new Point(1.0f, 1.0f, 0.0f)) // top
+			.add(TextureOffset.Rotated,
+					new Point(1.0f, 0.001f, 1.0f), new Point(0.0f, 1.0f, 1.0f), new Point(0.0f, 0.0f, 1.0f), new Point(1.0f, 0.0f, 1.0f)) // South
+			.add(new Point(1.0f, 0.0f, 0.0f), new Point(1.0f, 1.0f, 0.0f), new Point(1.0f, 0.001f, 1.0f), new Point(1.0f, 0.0f, 1.0f)) // east
 			.add(TextureOffset.Top,
-					new Point(1.0f, 0.0f, 0.0f), new Point(0.001f, 1.0f, 0.0f), new Point(0.001f, 1.0f, 0.001f), new Point(1.0f, 0.0f, 1.0f)) // east
+					new Point(1.0f, 1.0f, 0.0f), new Point(0.0f, 1.0f, 1.0f), new Point(0.999f, 0.0f, 1.0f), new Point(1.0f, 0.0f, 1.0f)) // Front
 	;
 
-	public SlopedAngleDesign(final Plugin plugin, final Texture texture, final SlopeSubTexture slopeTexture) {
+	public ObliqueSlopeDesign(final Plugin plugin, final Texture texture, final SlopeSubTexture slopeTexture) {
 		super(plugin, texture, slopeTexture);
 		setBrightness(1.0F);
 		setBoundingBox(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F);
 
-		setQuads(BlockFace.SOUTH, QUAD_LIST_SOUTH);
+		setQuads(BlockFace.SOUTH, DEFAULT_INVENTORY);
 	}
 }

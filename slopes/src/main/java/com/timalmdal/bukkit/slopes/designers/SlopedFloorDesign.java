@@ -28,14 +28,18 @@ import org.getspout.spoutapi.block.design.Texture;
 import com.timalmdal.bukkit.slopes.util.Point;
 import com.timalmdal.bukkit.slopes.util.QuadList;
 import com.timalmdal.bukkit.slopes.util.SlopeSubTexture;
+import com.timalmdal.bukkit.slopes.util.TextureOffset;
 
 public class SlopedFloorDesign extends AbstractBlockDesign {
 	static final QuadList QUAD_LIST_SOUTH = AbstractBlockDesign.quadBuilder()
-			.add(new Point(0.0f, 0.0f, 1.0f), new Point(0.0f, 0.0f, 0.0f), new Point(1.0f, 0.0f, 0.0f), new Point(1.0f, 0.0f, 1.0f)) // bottom
-			.add(new Point(1.0f, 1.0f, 0.0f), new Point(1.0f, 0.0f, 0.0f), new Point(0.0f, 0.0f, 0.0f), new Point(0.0f, 1.0f, 0.0f)) // north
-			.add(new Point(0.0f, 1.0f, 0.0f), new Point(0.0f, 0.0f, 1.0f), new Point(1.0f, 0.0f, 1.0f), new Point(1.0f, 1.0f, 0.0f)) // Sloped Front
-			.add(new Point(1.0f, 0.001f, 1.0f), new Point(1.0f, 0.0f, 1.0f), new Point(1.0f, 0.0f, 0.0f), new Point(1.0f, 1.0f, 0.0f)) // east
-			.add(new Point(0.0f, 0.001f, 1.0f), new Point(0.0f, 0.0f, 1.0f), new Point(0.0f, 0.0f, 0.0f), new Point(0.0f, 1.0f, 0.0f)) // west
+			.add(TextureOffset.Bottom,
+					new Point(0.0f, 0.0f, 1.0f), new Point(0.0f, 0.0f, 0.0f), new Point(1.0f, 0.0f, 0.0f), new Point(1.0f, 0.0f, 1.0f)) // bottom
+			.add(new Point(0.0f, 0.0f, 0.0f), new Point(0.0f, 1.0f, 0.0f), new Point(1.0f, 1.0f, 0.0f), new Point(1.0f, 0.0f, 0.0f)) // north
+			.add(new Point(0.0f, 0.0f, 1.0f), new Point(0.0f, 0.001f, 1.0f), new Point(0.0f, 1.0f, 0.0f), new Point(0.0f, 0.0f, 0.0f)) // west
+			.add(TextureOffset.Top,
+					new Point(1.0f, 0.0f, 1.0f), new Point(1.0f, 1.0f, 0.0f), new Point(0.0f, 1.0f, 0.0f), new Point(0.0f, 0.0f, 1.0f)) // Sloped Front
+			.add(TextureOffset.Rotated,
+					new Point(1.0f, 1.0f, 0.0f), new Point(1.0f, 0.001f, 1.0f), new Point(1.0f, 0.0f, 1.0f), new Point(1.0f, 0.0f, 0.0f)) // east
 	;
 
 	public SlopedFloorDesign(final Plugin plugin, final Texture texture, final SlopeSubTexture slopeTexture) {

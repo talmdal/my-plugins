@@ -39,6 +39,11 @@ public enum SlopeSubTexture {
 		return sourceBlock;
 	}
 
+	/**
+	 * Format the display name by inserting the material name into the specified pattern.
+	 * @param namePattern
+	 * @return material name
+	 */
 	public String getDisplayName(final String namePattern) {
 		final StringBuilder displayName = new StringBuilder(name().toLowerCase());
 		displayName.setCharAt(0, Character.toUpperCase(displayName.charAt(0)));
@@ -51,9 +56,9 @@ public enum SlopeSubTexture {
 
 	public static EnumSet<SlopeSubTexture> getExtendedMaterialSet() {
 		return EnumSet.of(
-				SlopeSubTexture.GLASS, SlopeSubTexture.SANDSTONE, SlopeSubTexture.DIRT, SlopeSubTexture.SAND,
-				SlopeSubTexture.SNOW, SlopeSubTexture.GRASS, SlopeSubTexture.GRAVEL, SlopeSubTexture.GOLD,
-				SlopeSubTexture.IRON, SlopeSubTexture.OBSIDIAN, SlopeSubTexture.DIAMOND);
+						SlopeSubTexture.GLASS, SlopeSubTexture.SANDSTONE, SlopeSubTexture.DIRT, SlopeSubTexture.SAND,
+						SlopeSubTexture.SNOW, SlopeSubTexture.GRASS, SlopeSubTexture.GRAVEL, SlopeSubTexture.GOLD,
+						SlopeSubTexture.IRON, SlopeSubTexture.OBSIDIAN, SlopeSubTexture.DIAMOND, SlopeSubTexture.STONE);
 	}
 
 	public static EnumSet<SlopeSubTexture> getAllMaterialSet() {

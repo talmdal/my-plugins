@@ -19,17 +19,25 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.timalmdal.bukkit.slopes.original;
+package com.timalmdal.bukkit.slopes.blocks;
 
-public enum Direction {
-	NORTH(0),
-	EAST(1),
-	SOUTH(2),
-	WEST(3);
+import org.bukkit.block.BlockFace;
+import org.bukkit.plugin.java.JavaPlugin;
+import org.getspout.spoutapi.block.design.Texture;
 
-	int num;
-	
-	private Direction(int num) {
-		this.num = num;
+import com.timalmdal.bukkit.slopes.designers.StairsDesign;
+import com.timalmdal.bukkit.slopes.util.SlopeSubTexture;
+
+public final class Stairs extends AbstractBlock {
+	protected static final String[] RECIPE = new String[] { "A  ", "AA ", "AAA" };
+
+	public Stairs(final JavaPlugin plugin, final Texture texture, final SlopeSubTexture slopeTexture) {
+		super(plugin, slopeTexture.getDisplayName("%s Stair"), new StairsDesign(plugin, texture, slopeTexture), texture, slopeTexture);
+		setFacingDirection(BlockFace.SOUTH);
+	}
+
+	@Override
+	public boolean isClimbable() {
+		return true;
 	}
 }

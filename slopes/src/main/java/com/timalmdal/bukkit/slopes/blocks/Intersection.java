@@ -19,19 +19,26 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.timalmdal.bukkit.slopes.original;
+package com.timalmdal.bukkit.slopes.blocks;
 
-import org.bukkit.plugin.Plugin;
+import org.bukkit.block.BlockFace;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.getspout.spoutapi.block.design.Texture;
 
+import com.timalmdal.bukkit.slopes.designers.IntersectionDesign;
 import com.timalmdal.bukkit.slopes.util.SlopeSubTexture;
 
-public abstract class CeilingAngle extends SlopeBlock {
+public final class Intersection extends AbstractBlock {
+	protected static final String[] RECIPE = new String[] { "   ", "A A", "AA " };
 
-	public CeilingAngle(final Plugin plugin, final Texture tex, final SlopeSubTexture subTexture) {
-		// TODO move some of this fluff into SlopeBlock
-		super(plugin, subTexture.getDisplayName(" Ceiling Angle"),
-				new CeilingAngleDesign(plugin, tex, tex.getSubTexture(subTexture.getTextureIndex()), Direction.EAST),
-				tex, tex.getSubTexture(subTexture.getTextureIndex()));
+	public Intersection(final JavaPlugin plugin, final Texture texture, final SlopeSubTexture slopeTexture) {
+		super(plugin, slopeTexture.getDisplayName(" %s Intersection"),
+				new IntersectionDesign(plugin, texture, slopeTexture), texture, slopeTexture);
+		setFacingDirection(BlockFace.SOUTH);
+	}
+
+	@Override
+	public boolean isClimbable() {
+		return true;
 	}
 }

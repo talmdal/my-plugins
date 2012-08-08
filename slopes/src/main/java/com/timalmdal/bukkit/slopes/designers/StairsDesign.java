@@ -28,23 +28,25 @@ import org.getspout.spoutapi.block.design.Texture;
 import com.timalmdal.bukkit.slopes.util.Point;
 import com.timalmdal.bukkit.slopes.util.QuadList;
 import com.timalmdal.bukkit.slopes.util.SlopeSubTexture;
+import com.timalmdal.bukkit.slopes.util.TextureOffset;
 
-
-public class StairBlockDesign extends AbstractBlockDesign {
+public class StairsDesign extends AbstractBlockDesign {
 	static final QuadList QUAD_LIST_SOUTH = AbstractBlockDesign.quadBuilder()
 			.add(new Point(0.0f, 0.0f, 1.0f), new Point(0.0f, 0.0f, 0.0f), new Point(1.0f, 0.0f, 0.0f), new Point(1.0f, 0.0f, 1.0f)) // bottom
-			.add(new Point(1.0f, 1.0f, 0.0f), new Point(1.0f, 0.0f, 0.0f), new Point(0.0f, 0.0f, 0.0f), new Point(0.0f, 1.0f, 0.0f)) // north
-			.add(new Point(0.0f, 0.5f, 0.5f), new Point(0.0f, 0.5f, 1.0f), new Point(1.0f, 0.5f, 1.0f), new Point(1.0f, 0.5f, 0.5f)) // lower top
-			.add(new Point(0.0f, 1.0f, 0.0f), new Point(0.0f, 1.0f, 0.5f), new Point(1.0f, 1.0f, 0.5f), new Point(1.0f, 1.0f, 0.0f)) // upper top
-			.add(new Point(1.0f, 1.0f, 0.5f), new Point(1.0f, 0.5f, 0.5f), new Point(1.0f, 0.5f, 0.0f), new Point(1.0f, 1.0f, 0.0f)) // upper east
-			.add(new Point(1.0f, 0.5f, 1.0f), new Point(1.0f, 0.0f, 1.0f), new Point(1.0f, 0.0f, 0.0f), new Point(1.0f, 0.5f, 0.0f)) // lower east
-			.add(new Point(0.0f, 1.0f, 0.0f), new Point(0.0f, 0.5f, 0.0f), new Point(0.0f, 0.5f, 0.5f), new Point(0.0f, 1.0f, 0.5f)) // upper west
-			.add(new Point(0.0f, 0.5f, 0.0f), new Point(0.0f, 0.0f, 0.0f), new Point(0.0f, 0.0f, 1.0f), new Point(0.0f, 0.5f, 1.0f)) // lower west
-			.add(new Point(0.0f, 1.0f, 0.5f), new Point(0.0f, 0.5f, 0.5f), new Point(1.0f, 0.5f, 0.5f), new Point(1.0f, 1.0f, 0.5f)) // upper south
-			.add(new Point(0.0f, 0.5f, 1.0f), new Point(0.0f, 0.0f, 1.0f), new Point(1.0f, 0.0f, 1.0f), new Point(1.0f, 0.5f, 1.0f)) // lower south
+			.add(new Point(0.0f, 0.0f, 0.0f), new Point(0.0f, 1.0f, 0.0f), new Point(1.0f, 1.0f, 0.0f), new Point(1.0f, 0.0f, 0.0f)) // north
+			.add(TextureOffset.Top,
+					new Point(0.0f, 0.5f, 0.5f), new Point(0.0f, 0.5f, 1.0f), new Point(1.0f, 0.5f, 1.0f), new Point(1.0f, 0.5f, 0.5f)) // lower top
+			.add(TextureOffset.Top,
+					new Point(0.0f, 1.0f, 0.0f), new Point(0.0f, 1.0f, 0.5f), new Point(1.0f, 1.0f, 0.5f), new Point(1.0f, 1.0f, 0.0f)) // upper top
+			.add(new Point(1.0f, 0.5f, 0.0f), new Point(1.0f, 1.0f, 0.0f), new Point(1.0f, 1.0f, 0.5f), new Point(1.0f, 0.5f, 0.5f)) // upper east
+			.add(new Point(1.0f, 0.0f, 0.0f), new Point(1.0f, 0.5f, 0.0f), new Point(1.0f, 0.5f, 1.0f), new Point(1.0f, 0.0f, 1.0f)) // lower east
+			.add(new Point(0.0f, 0.5f, 0.5f), new Point(0.0f, 1.0f, 0.5f), new Point(0.0f, 1.0f, 0.0f), new Point(0.0f, 0.5f, 0.0f)) // upper west
+			.add(new Point(0.0f, 0.0f, 1.0f), new Point(0.0f, 0.5f, 1.0f), new Point(0.0f, 0.5f, 0.0f), new Point(0.0f, 0.0f, 0.0f)) // lower west
+			.add(new Point(1.0f, 0.5f, 0.5f), new Point(1.0f, 1.0f, 0.5f), new Point(0.0f, 1.0f, 0.5f), new Point(0.0f, 0.5f, 0.5f)) // upper south
+			.add(new Point(1.0f, 0.0f, 1.0f), new Point(1.0f, 0.5f, 1.0f), new Point(0.0f, 0.5f, 1.0f), new Point(0.0f, 0.0f, 1.0f)) // lower south
 	;
 
-	public StairBlockDesign(final Plugin plugin, final Texture texture, final SlopeSubTexture slopeTexture) {
+	public StairsDesign(final Plugin plugin, final Texture texture, final SlopeSubTexture slopeTexture) {
 		super(plugin, texture, slopeTexture);
 		setBrightness(1.0F);
 		setBoundingBox(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F);

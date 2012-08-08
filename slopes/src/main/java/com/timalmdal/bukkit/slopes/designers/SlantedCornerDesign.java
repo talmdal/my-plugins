@@ -28,14 +28,20 @@ import org.getspout.spoutapi.block.design.Texture;
 import com.timalmdal.bukkit.slopes.util.Point;
 import com.timalmdal.bukkit.slopes.util.QuadList;
 import com.timalmdal.bukkit.slopes.util.SlopeSubTexture;
+import com.timalmdal.bukkit.slopes.util.TextureOffset;
 
 public class SlantedCornerDesign extends AbstractBlockDesign {
+	// TODO look at build different directional designs and then don't auto...
+	// rotate, so maybe we can get away with less quads
 	private static final QuadList QUAD_LIST_SOUTH = AbstractBlockDesign.quadBuilder()
-			.add(new Point(0.0f, 0.0f, 1.0f), new Point(0.0f, 0.0f, 0.0f), new Point(1.0f, 0.0f, 0.0f), new Point(0.001f, 0.0f, 1.0f)) // bottom
-			.add(new Point(.001f, 1.0f, 0.0f), new Point(1.0f, 0.0f, 0.0f), new Point(0.0f, 0.0f, 0.0f), new Point(0.0f, 1.0f, 0.0f)) // north
-			.add(new Point(0.0f, 1.0f, 0.0f), new Point(0.0f, 0.0f, 0.0f), new Point(0.0f, 0.0f, 1.0f), new Point(0.0f, 1.0f, 0.001f)) // west
-			.add(new Point(0.0f, 1.0f, 0.001f), new Point(0.0f, 0.0f, 1.0f), new Point(0.5f, 0.0f, 0.5f), new Point(0.0f, 1.0f, 0.0f)) // southwest
-			.add(new Point(0.0f, 1.0f, 0.001f), new Point(0.5f, 0.0f, 0.5f), new Point(1.0f, 0.0f, 0.0f), new Point(0.0f, 1.0f, 0.0f)) // southeast
+			.add(TextureOffset.Bottom,
+					new Point(0.0f, 0.0f, 1.0f), new Point(0.0f, 0.0f, 0.0f), new Point(1.0f, 0.0f, 0.0f), new Point(0.001f, 0.0f, 1.0f)) // bottom
+			.add(new Point(0.0f, 0.0f, 0.0f), new Point(0.0f, 1.0f, 0.0f), new Point(.001f, 1.0f, 0.0f), new Point(1.0f, 0.0f, 0.0f)) // north
+			.add(new Point(0.0f, 0.0f, 1.0f), new Point(0.0f, 1.0f, 0.001f), new Point(0.0f, 1.0f, 0.0f), new Point(0.0f, 0.0f, 0.0f)) // west
+			.add(TextureOffset.Top,
+					new Point(0.5f, 0.0f, 0.5f), new Point(0.0f, 1.0f, 0.0f), new Point(0.0f, 1.0f, 0.001f), new Point(0.0f, 0.0f, 1.0f)) // southwest
+			.add(TextureOffset.Top,
+					new Point(1.0f, 0.0f, 0.0f), new Point(0.0f, 1.0f, 0.0f), new Point(0.0f, 1.0f, 0.001f), new Point(0.5f, 0.0f, 0.5f)) // southeast
 	;
 
 	public SlantedCornerDesign(final Plugin plugin, final Texture texture, final SlopeSubTexture slopeTexture) {
