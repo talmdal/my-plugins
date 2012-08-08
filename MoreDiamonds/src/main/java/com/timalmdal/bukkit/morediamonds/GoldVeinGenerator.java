@@ -20,33 +20,33 @@ package com.timalmdal.bukkit.morediamonds;
 
 import org.bukkit.Material;
 
-public class DiamondVeinGenerator extends AbstractOreVeinGenerator {
-	private static final int HIGHEST_DIAMOND_LEVEL = 32;
-	private static final int LOWEST_DIAMOND_LEVEL = 8;
-	private static final int MAX_DIAMOND_CLUSTER_SIZE = 16;
-	private static final int MIN_DIAMOND_CLUSTER_SIZE = 4;
+public class GoldVeinGenerator extends AbstractOreVeinGenerator {
+	private static final int MAX_GOLD_VEIN_SIZE = 20; // Maximum number of gold ore blocks in a cluster
+	private static final int MIN_GOLD_VEIN_SIZE = 8; // Minimum number of gold ore blocks in a cluster
+	private static final int LOWEST_GOLD_LEVEL = 12;
+	private static final int HIGHEST_GOLD_LEVEL = 48;
 
-	public DiamondVeinGenerator() {
-		super(Material.DIAMOND_ORE);
+	public GoldVeinGenerator() {
+		super(Material.GOLD_ORE);
 	}
 
 	@Override
 	protected int getMaximumClusterSize() {
-		return MAX_DIAMOND_CLUSTER_SIZE;
+		return MAX_GOLD_VEIN_SIZE;
 	}
 
 	@Override
 	protected int getMinimumClusterSize() {
-		return MIN_DIAMOND_CLUSTER_SIZE;
+		return MIN_GOLD_VEIN_SIZE;
 	}
 
 	@Override
 	protected int getHighestLevel() {
-		return HIGHEST_DIAMOND_LEVEL;
+		return HIGHEST_GOLD_LEVEL;
 	}
 
 	@Override
 	protected int getLowestLevel() {
-		return LOWEST_DIAMOND_LEVEL;
+		return LOWEST_GOLD_LEVEL;
 	}
 }

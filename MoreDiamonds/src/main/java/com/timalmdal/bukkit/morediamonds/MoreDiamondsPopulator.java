@@ -18,6 +18,8 @@
  */
 package com.timalmdal.bukkit.morediamonds;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 import org.bukkit.Chunk;
@@ -27,61 +29,60 @@ import org.bukkit.block.Block;
 import org.bukkit.generator.BlockPopulator;
 
 public class MoreDiamondsPopulator extends BlockPopulator {
-    private static final int HIGHEST_DIAMOND_LEVEL = 32;
-    private static final int MINIMUM_NUMBER_OF_LEVELS = 8;
-    private static final int LOWEST_DIAMOND_LEVEL = 8;
 
-    private static int highestDiamondLevel = -1;
+	private static final List<AbstractOreVeinGenerator> oreList = new ArrayList<AbstractOreVeinGenerator>(2);
 
-    public static int getHighestDiamondLevel() {
-        if (highestDiamondLevel == -1) {
-            highestDiamondLevel = new Random().nextInt(HIGHEST_DIAMOND_LEVEL - (LOWEST_DIAMOND_LEVEL + MINIMUM_NUMBER_OF_LEVELS) + 1) + LOWEST_DIAMOND_LEVEL;
-        }
-        return highestDiamondLevel;
-    }
+	static {
+		oreList.add(new DiamondVeinGenerator());
+		oreList.add(new GoldVeinGenerator());
+	}
 
-    private final MoreDiamondsPlugin plugin;
-    private Random randomGenerator;
+	private final MoreDiamondsPlugin plugin;
+	private Random randomGenerator;
 
-    public MoreDiamondsPopulator(final MoreDiamondsPlugin plugin) {
-        this.plugin = plugin;
-    }
+	public MoreDiamondsPopulator(final MoreDiamondsPlugin plugin) {
+		this.plugin = plugin;
+	}
 
-    @Override
-    public void populate(final World world, final Random random, final Chunk source) {
-        if (plugin.getServer().getWorlds().get(0).equals(world)) {
-            randomGenerator = random;
+	@Override
+	public void populate(final World world, final Random random, final Chunk source) {
+		if (plugin.getServer().getWorlds().get(0).equals(world)) {
+			randomGenerator = random;
 
-            final int numberOfVeinsInChunk = randomGenerator.nextInt(4);
+			for (final AbstractOreVeinGenerator generator : oreList) {
+				final int numberOfVeinsInChunk = randomGenerator.nextInt(4) + 1;
 
-            for (int chance = 0; chance <= numberOfVeinsInChunk; chance++) {
-                final int blockX = randomGenerator.nextInt(16);
-                final int blockZ = randomGenerator.nextInt(16);
-                final int blockY = randomGenerator.nextInt(getHighestDiamondLevel() - LOWEST_DIAMOND_LEVEL + 1) + LOWEST_DIAMOND_LEVEL;
+				int chance = 0;
+				for (; chance <= numberOfVeinsInChunk;) {
+					final int blockX = randomGenerator.nextInt(16);
+					final int blockZ = randomGenerator.nextInt(16);
+					final int blockY = generator.getClusterLevel(randomGenerator);
 
-                final Block block = source.getBlock(blockX, blockY, blockZ);
-                if (!(Material.AIR.equals(block.getType()) || Material.COAL_ORE.equals(block.getType()) || Material.GOLD_ORE.equals(block.getType()) ||
-                        Material.REDSTONE_ORE.equals(block.getType()) || Material.IRON_ORE.equals(block.getType()))) {
-                    checkSurroundingBlocks(3, new DiamondVeinGenerator(block, randomGenerator));
-                }
-            }
-        }
-    }
+					final Block block = source.getBlock(blockX, blockY, blockZ);
+					if ((Material.STONE.equals(block.getType()) || Material.DIRT.equals(block.getType()) || Material.GRAVEL.equals(block.getType()) ||
+						Material.WATER.equals(block.getType()) || Material.COBBLESTONE.equals(block.getType()) || Material.LAVA.equals(block.getType()))) {
+						checkSurroundingBlocks(3, generator.getBlockProcessor(block, randomGenerator));
+						chance++;
+					}
+				}
+			}
+		}
+	}
 
-    private boolean checkSurroundingBlocks(final int radius, final SurroundingBlocksEnumerator surroundingBlocksEnumerator) {
-        boolean result = false;
-        for (int distance = 1; distance <= radius && !result; distance++) {
-            final int beginBlock = -distance;
-            final int endBlock = distance;
-            for (int x = beginBlock; x <= endBlock && !result; x++) {
-                for (int z = beginBlock; z <= endBlock && !result; z++) {
-                    for (int y = beginBlock; y <= endBlock && !result; y++) {
-                        result = surroundingBlocksEnumerator.processBlock(x, y, z);
-                    }
-                }
-            }
-        }
+	private boolean checkSurroundingBlocks(final int radius, final SurroundingBlocksEnumerator surroundingBlocksEnumerator) {
+		boolean result = false;
+		for (int distance = 1; distance <= radius && !result; distance++) {
+			final int beginBlock = -distance;
+			final int endBlock = distance;
+			for (int x = beginBlock; x <= endBlock && !result; x++) {
+				for (int z = beginBlock; z <= endBlock && !result; z++) {
+					for (int y = beginBlock; y <= endBlock && !result; y++) {
+						result = surroundingBlocksEnumerator.processBlock(x, y, z);
+					}
+				}
+			}
+		}
 
-        return result;
-    }
+		return result;
+	}
 }
