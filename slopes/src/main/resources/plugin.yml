@@ -1,5 +1,0 @@
-name: SlopesPlugin
-version: 1.0
-description: Slope blocks, corner blocks, etc.
-main: com.timalmdal.bukkit.slopes.SlopesPlugin
-depend: [Spout]
