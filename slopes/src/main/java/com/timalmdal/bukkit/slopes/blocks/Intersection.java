@@ -21,24 +21,36 @@
  */
 package com.timalmdal.bukkit.slopes.blocks;
 
-import org.bukkit.block.BlockFace;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.getspout.spoutapi.block.design.Texture;
 
-import com.timalmdal.bukkit.slopes.designers.IntersectionDesign;
+import com.timalmdal.bukkit.slopes.util.Point;
+import com.timalmdal.bukkit.slopes.util.QuadList;
 import com.timalmdal.bukkit.slopes.util.SlopeSubTexture;
+import com.timalmdal.bukkit.slopes.util.TextureOffset;
 
 public final class Intersection extends AbstractBlock {
-	protected static final String[] RECIPE = new String[] { "   ", "A A", "AA " };
+	private static final QuadList QUAD_LIST = QuadList.quadBuilder()
+		.add(TextureOffset.Bottom,
+			new Point(0.0f, 0.0f, 1.0f), new Point(0.0f, 0.0f, 0.0f), new Point(1.0f, 0.0f, 0.0f), new Point(1.0f, 0.0f, 1.0f)) // bottom
+		.add(new Point(0.0f, 0.0f, 0.0f), new Point(0.0f, 1.0f, 0.0f), new Point(1.0f, 1.0f, 0.0f), new Point(1.0f, 0.0f, 0.0f)) // north
+		.add(new Point(0.0f, 0.0f, 1.0f), new Point(0.0f, 1.0f, 1.0f), new Point(0.0f, 1.0f, 0.0f), new Point(0.0f, 0.0f, 0.0f)) // west
+		.add(TextureOffset.Rotated,
+			new Point(1.0f, 0.001f, 1.0f), new Point(0.0f, 1.0f, 1.0f), new Point(0.0f, 0.0f, 1.0f), new Point(1.0f, 0.0f, 1.0f)) // South
+		.add(new Point(1.0f, 0.0f, 0.0f), new Point(1.0f, 1.0f, 0.0f), new Point(1.0f, 0.001f, 1.0f), new Point(1.0f, 0.0f, 1.0f)) // east
+		.add(TextureOffset.Top,
+			new Point(0.0f, 1.0f, 0.0f), new Point(0.0f, 1.0f, 1.0f), new Point(1.0f, 0.001f, 1.0f), new Point(1.0f, 0.0f, 1.0f)) // Front west
+		.add(TextureOffset.Top,
+			new Point(1.0f, 1.0f, 0.0f), new Point(0.0f, 1.0f, 0.0f), new Point(1.0f, 0.001f, 1.0f), new Point(1.0f, 0.0f, 1.0f)) // Front east
+	;
 
 	public Intersection(final JavaPlugin plugin, final Texture texture, final SlopeSubTexture slopeTexture) {
-		super(plugin, slopeTexture.getDisplayName(" %s Intersection"),
-				new IntersectionDesign(plugin, texture, slopeTexture), texture, slopeTexture);
-		setFacingDirection(BlockFace.SOUTH);
+		super(plugin, slopeTexture.getDisplayName(" %s Intersection"), QUAD_LIST, texture, slopeTexture);
 	}
 
 	@Override
-	public boolean isClimbable() {
-		return true;
+	public String[] getRecipe() {
+		return new String[] { "AA ", "A A", "   " };
 	}
+
 }

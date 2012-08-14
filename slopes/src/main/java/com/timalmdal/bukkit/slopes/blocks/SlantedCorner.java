@@ -21,23 +21,32 @@
  */
 package com.timalmdal.bukkit.slopes.blocks;
 
-import org.bukkit.block.BlockFace;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.getspout.spoutapi.block.design.Texture;
 
-import com.timalmdal.bukkit.slopes.designers.SlantedCornerDesign;
+import com.timalmdal.bukkit.slopes.util.Point;
+import com.timalmdal.bukkit.slopes.util.QuadList;
 import com.timalmdal.bukkit.slopes.util.SlopeSubTexture;
+import com.timalmdal.bukkit.slopes.util.TextureOffset;
 
 public final class SlantedCorner extends AbstractBlock {
-	protected static final String[] RECIPE = new String[] { " A ", " A ", "AAA" };
+	private static final QuadList QUAD_LIST = QuadList.quadBuilder()
+		.add(TextureOffset.Bottom,
+			new Point(0.0f, 0.0f, 1.0f), new Point(0.0f, 0.0f, 0.0f), new Point(1.0f, 0.0f, 0.0f), new Point(0.001f, 0.0f, 1.0f)) // bottom
+		.add(new Point(0.0f, 0.0f, 0.0f), new Point(0.0f, 1.0f, 0.0f), new Point(.001f, 1.0f, 0.0f), new Point(1.0f, 0.0f, 0.0f)) // north
+		.add(new Point(0.0f, 0.0f, 1.0f), new Point(0.0f, 1.0f, 0.001f), new Point(0.0f, 1.0f, 0.0f), new Point(0.0f, 0.0f, 0.0f)) // west
+		.add(TextureOffset.Top,
+			new Point(0.5f, 0.0f, 0.5f), new Point(0.0f, 1.0f, 0.0f), new Point(0.0f, 1.0f, 0.001f), new Point(0.0f, 0.0f, 1.0f)) // southwest
+		.add(TextureOffset.Top,
+			new Point(1.0f, 0.0f, 0.0f), new Point(0.0f, 1.0f, 0.0f), new Point(0.0f, 1.0f, 0.001f), new Point(0.5f, 0.0f, 0.5f)) // southeast
+	;
 
 	public SlantedCorner(final JavaPlugin plugin, final Texture texture, final SlopeSubTexture slopeTexture) {
-		super(plugin, slopeTexture.getDisplayName("Slanted %s Angle"), new SlantedCornerDesign(plugin, texture, slopeTexture), texture, slopeTexture);
-		setFacingDirection(BlockFace.SOUTH);
+		super(plugin, slopeTexture.getDisplayName("%s Slanted Corner"), QUAD_LIST, texture, slopeTexture);
 	}
 
 	@Override
-	public boolean isClimbable() {
-		return true;
+	public String[] getRecipe() {
+		return new String[] { " A ", " A ", "AAA" };
 	}
 }

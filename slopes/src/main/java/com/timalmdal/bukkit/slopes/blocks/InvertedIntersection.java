@@ -29,24 +29,26 @@ import com.timalmdal.bukkit.slopes.util.QuadList;
 import com.timalmdal.bukkit.slopes.util.SlopeSubTexture;
 import com.timalmdal.bukkit.slopes.util.TextureOffset;
 
-public final class SlopedFloor extends AbstractBlock {
+public final class InvertedIntersection extends AbstractBlock {
 	private static final QuadList QUAD_LIST = QuadList.quadBuilder()
-		.add(TextureOffset.Bottom,
-			new Point(0.0f, 0.0f, 1.0f), new Point(0.0f, 0.0f, 0.0f), new Point(1.0f, 0.0f, 0.0f), new Point(1.0f, 0.0f, 1.0f)) // bottom
-		.add(new Point(0.0f, 0.0f, 0.0f), new Point(0.0f, 1.0f, 0.0f), new Point(1.0f, 1.0f, 0.0f), new Point(1.0f, 0.0f, 0.0f)) // north
-		.add(new Point(0.0f, 0.0f, 1.0f), new Point(0.0f, 0.001f, 1.0f), new Point(0.0f, 1.0f, 0.0f), new Point(0.0f, 0.0f, 0.0f)) // west
 		.add(TextureOffset.Top,
-			new Point(1.0f, 0.0f, 1.0f), new Point(1.0f, 1.0f, 0.0f), new Point(0.0f, 1.0f, 0.0f), new Point(0.0f, 0.0f, 1.0f)) // Sloped Front
+			new Point(0.0f, 1.0f, 0.0f), new Point(0.0f, 1.0f, 1.0f), new Point(1.0f, 1.0f, 1.0f), new Point(1.0f, 1.0f, 0.0f)) // Top
+		.add(new Point(1.0f, 1.0f, 0.0f), new Point(1.0f, 0.0f, 0.0f), new Point(0.0f, 0.0f, 0.0f), new Point(0.0f, 1.0f, 0.0f)) // north
+		.add(new Point(0.0f, 1.0f, 0.0f), new Point(0.0f, 0.0f, 0.0f), new Point(0.0f, 0.0f, 1.0f), new Point(0.0f, 1.0f, 1.0f)) // east
+		.add(new Point(0.0f, 1.0f, 1.0f), new Point(0.0f, 0.001f, 1.0f), new Point(0.0f, 0.0f, 1.0f), new Point(1.0f, 1.0f, 1.0f)) // south
+		.add(new Point(1.0f, 1.0f, 1.0f), new Point(1.0f, 0.001f, 0.0f), new Point(1.0f, 0.0f, 0.0f), new Point(1.0f, 1.0f, 0.0f)) // west
+		.add(new Point(0.0f, 0.001f, 0.0f), new Point(0.0f, 0.0f, 0.0f), new Point(1.0f, 0.0f, 0.0f), new Point(1.0f, 1.0f, 1.0f)) // Front west
 		.add(TextureOffset.Rotated,
-			new Point(1.0f, 1.0f, 0.0f), new Point(1.0f, 0.001f, 1.0f), new Point(1.0f, 0.0f, 1.0f), new Point(1.0f, 0.0f, 0.0f)) // east
+			new Point(0.0f, 0.0f, 1.0f), new Point(0.0f, 0.00f, 0.001f), new Point(0.0f, 0.0f, 0.0f), new Point(1.0f, 1.0f, 1.0f)) // Front east
 	;
 
-	public SlopedFloor(final JavaPlugin plugin, final Texture texture, final SlopeSubTexture slopeTexture) {
-		super(plugin, slopeTexture.getDisplayName("Sloped %s Floor"), QUAD_LIST, texture, slopeTexture);
+	public InvertedIntersection(final JavaPlugin plugin, final Texture texture, final SlopeSubTexture slopeTexture) {
+		super(plugin, slopeTexture.getDisplayName("Inverted %s Intersection"), QUAD_LIST, texture, slopeTexture);
 	}
 
 	@Override
 	public String[] getRecipe() {
-		return new String[] { "A  ", " A ", "AAA" };
+		return new String[] { "   ", "A A", "AA " };
 	}
+
 }

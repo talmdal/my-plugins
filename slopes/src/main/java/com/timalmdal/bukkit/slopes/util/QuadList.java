@@ -9,6 +9,10 @@ import org.getspout.spoutapi.block.design.SubTexture;
 public class QuadList {
 	private final List<QuadDefinition> quads = new ArrayList<QuadDefinition>();
 
+	public static QuadList quadBuilder() {
+		return new QuadList();
+	}
+
 	public QuadList add(final Point... vertices) {
 		return add(TextureOffset.Default, vertices);
 	}
@@ -18,8 +22,7 @@ public class QuadList {
 			throw new IllegalArgumentException("Invalid vertex index: " + vertices.length);
 		}
 
-		final QuadDefinition quadDefn = new QuadDefinition(textureOffset, vertices)
-				.setQuadIndex(quads.size());
+		final QuadDefinition quadDefn = new QuadDefinition(textureOffset, vertices).setQuadIndex(quads.size());
 		quads.add(quadDefn);
 
 		return this;
@@ -35,10 +38,7 @@ public class QuadList {
 			final SubTexture sideTexture = TextureOffset.Default.equals(quad.getTextureOffset()) ? subTexture : quad.getSubTexture(subTexture);
 
 			for (final Point descriptor : quad) {
-				designer.setVertex(descriptor
-						.setOrder(order++)
-						.setQuad(quad.getQuadIndex())
-						.generateVertex(sideTexture));
+				designer.setVertex(descriptor.setOrder(order++).setQuad(quad.getQuadIndex()).generateVertex(sideTexture));
 			}
 		}
 	}

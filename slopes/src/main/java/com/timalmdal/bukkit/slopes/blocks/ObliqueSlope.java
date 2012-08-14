@@ -21,23 +21,35 @@
  */
 package com.timalmdal.bukkit.slopes.blocks;
 
-import org.bukkit.block.BlockFace;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.getspout.spoutapi.block.design.Texture;
 
-import com.timalmdal.bukkit.slopes.designers.ObliqueSlopeDesign;
+import com.timalmdal.bukkit.slopes.util.Point;
+import com.timalmdal.bukkit.slopes.util.QuadList;
 import com.timalmdal.bukkit.slopes.util.SlopeSubTexture;
+import com.timalmdal.bukkit.slopes.util.TextureOffset;
 
 public final class ObliqueSlope extends AbstractBlock {
-	protected static final String[] RECIPE = new String[] { "  A", "AAA", "   " };
+	private static final QuadList QUAD_LIST = QuadList.quadBuilder()
+		.add(TextureOffset.Bottom,
+			new Point(0.0f, 0.0f, 1.0f), new Point(0.0f, 0.0f, 0.0f), new Point(1.0f, 0.0f, 0.0f), new Point(1.0f, 0.0f, 1.0f)) // bottom
+		.add(new Point(0.0f, 0.0f, 0.0f), new Point(0.0f, 1.0f, 0.0f), new Point(1.0f, 1.0f, 0.0f), new Point(1.0f, 0.0f, 0.0f)) // north
+		.add(new Point(0.0f, 0.0f, 1.0f), new Point(0.0f, 1.0f, 1.0f), new Point(0.0f, 1.0f, 0.0f), new Point(0.0f, 0.0f, 0.0f)) // west
+		.add(TextureOffset.Top,
+			new Point(0.0f, 1.0f, 0.0f), new Point(0.0f, 1.0f, 1.0f), new Point(1.0f, 1.0f, 0.001f), new Point(1.0f, 1.0f, 0.0f)) // top
+		.add(TextureOffset.Rotated,
+			new Point(1.0f, 0.001f, 1.0f), new Point(0.0f, 1.0f, 1.0f), new Point(0.0f, 0.0f, 1.0f), new Point(1.0f, 0.0f, 1.0f)) // South
+		.add(new Point(1.0f, 0.0f, 0.0f), new Point(1.0f, 1.0f, 0.0f), new Point(1.0f, 0.001f, 1.0f), new Point(1.0f, 0.0f, 1.0f)) // east
+		.add(TextureOffset.Top,
+			new Point(1.0f, 1.0f, 0.0f), new Point(0.0f, 1.0f, 1.0f), new Point(0.999f, 0.0f, 1.0f), new Point(1.0f, 0.0f, 1.0f)) // Front
+	;
 
 	public ObliqueSlope(final JavaPlugin plugin, final Texture texture, final SlopeSubTexture slopeTexture) {
-		super(plugin, slopeTexture.getDisplayName("Oblique %s Slope"), new ObliqueSlopeDesign(plugin, texture, slopeTexture), texture, slopeTexture);
-		setFacingDirection(BlockFace.SOUTH);
+		super(plugin, slopeTexture.getDisplayName("Oblique %s Slope"), QUAD_LIST, texture, slopeTexture);
 	}
 
 	@Override
-	public boolean isClimbable() {
-		return true;
+	public String[] getRecipe() {
+		return new String[] { "  A", "AAA", "   " };
 	}
 }

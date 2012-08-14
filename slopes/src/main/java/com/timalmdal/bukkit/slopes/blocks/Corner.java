@@ -21,33 +21,31 @@
  */
 package com.timalmdal.bukkit.slopes.blocks;
 
-import org.bukkit.World;
-import org.bukkit.block.BlockFace;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.getspout.spoutapi.block.design.Texture;
 
-import com.timalmdal.bukkit.slopes.designers.CornerDesign;
+import com.timalmdal.bukkit.slopes.util.Point;
+import com.timalmdal.bukkit.slopes.util.QuadList;
 import com.timalmdal.bukkit.slopes.util.SlopeSubTexture;
+import com.timalmdal.bukkit.slopes.util.TextureOffset;
 
 public class Corner extends AbstractBlock {
-	public static final String[] RECIPE = new String[] { " A ", " AA", " A " };
+	private static final QuadList QUAD_LIST = QuadList.quadBuilder()
+		.add(TextureOffset.Top,
+			new Point(0.0f, 1.0f, 1.0f), new Point(1.0f, 1.0f, 0.001f), new Point(1.0f, 1.0f, 0.0f), new Point(0.0f, 1.0f, 0.0f)) // top
+		.add(TextureOffset.Bottom,
+			new Point(0.0f, 0.0f, 1.0f), new Point(1.0f, 0.0f, 0.0f), new Point(0.0f, 0.0f, 0.0f), new Point(0.0f, 0.0f, 0.001f)) // bottom
+		.add(new Point(0.0f, 0.0f, 0.0f), new Point(0.0f, 1.0f, 0.0f), new Point(1.0f, 1.0f, 0.0f), new Point(1.0f, 0.0f, 0.0f)) // north
+		.add(new Point(0.0f, 0.0f, 1.0f), new Point(0.0f, 1.0f, 1.0f), new Point(0.0f, 1.0f, 0.0f), new Point(0.0f, 0.0f, 0.0f)) // west
+		.add(new Point(1.0f, 0.0f, 0.0f), new Point(1.0f, 1.0f, 0.0f), new Point(0.0f, 1.0f, 1.0f), new Point(0.0f, 0.0f, 1.0f)) // front face
+	;
 
 	public Corner(final JavaPlugin plugin, final Texture texture, final SlopeSubTexture slopeTexture) {
-		super(plugin, slopeTexture.getDisplayName("%s Corner"),
-				new CornerDesign(plugin, texture, slopeTexture), texture, slopeTexture);
-		setFacingDirection(BlockFace.SOUTH);
+		super(plugin, slopeTexture.getDisplayName("%s Corner"), QUAD_LIST, texture, slopeTexture);
 	}
 
 	@Override
-	public boolean isClimbable() {
-		return false;
+	public String[] getRecipe() {
+		return new String[] { " A ", " AA", " A " };
 	}
-
-	@Override
-	public void onBlockPlace(final World world, final int x, final int y, final int z, final LivingEntity living) {
-		// TODO need to figure out which to place block (i.e. which corner
-		super.onBlockPlace(world, x, y, z, living);
-	}
-
 }

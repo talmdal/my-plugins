@@ -11,22 +11,34 @@ import org.getspout.spoutapi.block.design.Texture;
 import org.getspout.spoutapi.material.block.GenericCustomBlock;
 
 import com.timalmdal.bukkit.slopes.SlopesPlugin;
-import com.timalmdal.bukkit.slopes.designers.AbstractBlockDesign;
+import com.timalmdal.bukkit.slopes.designers.SlopeBlockDesign;
+import com.timalmdal.bukkit.slopes.util.QuadList;
 import com.timalmdal.bukkit.slopes.util.SlopeSubTexture;
 import com.timalmdal.bukkit.slopes.util.Utilities;
 
-public abstract class AbstractBlock extends GenericCustomBlock implements Directional, Climbable {
+public abstract class AbstractBlock extends GenericCustomBlock implements Directional {
 
 	private BlockFace blockFacing;
 
-	public AbstractBlock(final Plugin plugin, final String displayName, final AbstractBlockDesign design, final Texture texture, final SlopeSubTexture slopeTexture) {
-		super(plugin, displayName, 67, 0x00, design, true);
+	public AbstractBlock(final Plugin plugin, final String displayName, final QuadList quadList, final Texture texture,
+			final SlopeSubTexture slopeTexture) {
+		this(plugin, displayName, quadList, texture, slopeTexture, true);
 	}
 
-	@Override
-	public boolean isClimbable() {
-		return true;
+	public AbstractBlock(final Plugin plugin, final String displayName, final QuadList quadList, final Texture texture,
+			final SlopeSubTexture slopeTexture, final boolean rotate) {
+		super(plugin, displayName, 67, 0x00, new SlopeBlockDesign(plugin, texture, slopeTexture, quadList), rotate);
+		setFacingDirection(BlockFace.SOUTH);
+
 	}
+
+	/**
+	 * Derived classes must override this to allow the plugin to extract the
+	 * recipe.
+	 * 
+	 * @return
+	 */
+	public abstract String[] getRecipe();
 
 	/**
 	 * @return the direction the stairs ascend towards
@@ -56,26 +68,24 @@ public abstract class AbstractBlock extends GenericCustomBlock implements Direct
 	public void onBlockPlace(final World world, final int x, final int y, final int z, final LivingEntity living) {
 		final BlockFace playerFacing = Utilities.yawToFace(living.getLocation().getYaw());
 		setFacingDirection(playerFacing.getOppositeFace());
+	}
 
+	@Override
+	public void onBlockPlace(final World world, final int x, final int y, final int z) {
 		final Block block = world.getBlockAt(x, y, z);
 		final byte ascendingDirection = Utilities.getNotchianAscendingDirection(getAscendingDirection());
 
 		Bukkit.getScheduler().scheduleSyncDelayedTask(SlopesPlugin.getPlugin(), new Runnable() {
 			@Override
 			public void run() {
-				block.setData(ascendingDirection);
+				block.setData((byte) ((block.getData() & ~0x03) | ascendingDirection));
 			}
 		});
 	}
 
 	@Override
 	public String toString() {
-		return new StringBuilder()
-						.append(getName())
-						.append("[")
-						.append("Facing: ").append(blockFacing).append("; ")
-						.append(super.toString())
-						.append("]").toString();
+		return new StringBuilder().append(getName()).append("[").append("Facing: ").append(blockFacing).append("; ").append(super.toString()).append("]").toString();
 	}
 
 }

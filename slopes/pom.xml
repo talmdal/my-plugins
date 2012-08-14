@@ -6,7 +6,7 @@
     <version>0.0.1-SNAPSHOT</version>
   </parent>
   
-  <groupId>me.kaevator.bukkit</groupId>
+  <groupId>com.timalmdal.bukkit</groupId>
   <artifactId>slopes</artifactId>
   <version>1.0-SNAPSHOT</version>
   <name>slopes</name>
