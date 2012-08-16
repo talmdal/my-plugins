@@ -12,7 +12,7 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<dist.directory>../../minecraft_server/plugins</dist.directory>
+		<dist.directory>../../../minecraft_server/plugins</dist.directory>
 		<craftbukkitVersion>1.2.5-R4.1-SNAPSHOT</craftbukkitVersion>
 	</properties>
 

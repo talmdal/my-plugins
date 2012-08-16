@@ -46,22 +46,22 @@ import org.getspout.spoutapi.inventory.SpoutShapedRecipe;
 import org.getspout.spoutapi.material.MaterialData;
 
 public class Coal2DiamondPlugin extends JavaPlugin {
-    private static final String ICON = "compressedCoal.png";
+	private static final String ICON = "compressedCoal.png";
 
-    public ItemCompressedCoal compressedCoal;
+	public ItemCompressedCoal compressedCoal;
 
-    @Override
-    public void onEnable() {
-        compressedCoal = new ItemCompressedCoal(this, "compressedCoal", this.getResource(ICON), ICON);
-        MaterialData.addCustomItem(compressedCoal);
+	@Override
+	public void onEnable() {
+		compressedCoal = new ItemCompressedCoal(this, "compressedCoal", getResource(ICON), ICON);
+		MaterialData.addCustomItem(compressedCoal);
 
-        SpoutManager.getMaterialManager().registerSpoutRecipe(
-                new SpoutShapedRecipe(new SpoutItemStack(compressedCoal, 1))
-                        .shape("AAA", "AAA", "AAA")
-                        .setIngredient('A', MaterialData.coal));
+		SpoutManager.getMaterialManager().registerSpoutRecipe(
+			new SpoutShapedRecipe(new SpoutItemStack(compressedCoal, 1))
+				.shape("AAA", "A A", "AAA")
+				.setIngredient('A', MaterialData.coal));
 
-        Bukkit.getServer().getPluginManager().registerEvents(new CompressedCoalSmeltingListener(this), this);
-        getServer().addRecipe(new CraftFurnaceRecipe(new SpoutItemStack(MaterialData.diamond, 1),
-                new SpoutItemStack(compressedCoal)));
-    }
+		Bukkit.getServer().getPluginManager().registerEvents(new CompressedCoalSmeltingListener(this), this);
+		getServer().addRecipe(new CraftFurnaceRecipe(new SpoutItemStack(MaterialData.diamond, 1),
+			new SpoutItemStack(compressedCoal)));
+	}
 }

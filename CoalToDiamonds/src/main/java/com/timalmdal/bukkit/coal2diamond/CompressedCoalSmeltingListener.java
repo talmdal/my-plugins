@@ -46,17 +46,23 @@ import org.getspout.spoutapi.inventory.SpoutItemStack;
 import org.getspout.spoutapi.material.MaterialData;
 
 public class CompressedCoalSmeltingListener implements Listener {
-    public Coal2DiamondPlugin plugin;
+	public Coal2DiamondPlugin plugin;
 
-    public CompressedCoalSmeltingListener(final Coal2DiamondPlugin instance) {
-        plugin = instance;
-    }
+	public CompressedCoalSmeltingListener(final Coal2DiamondPlugin instance) {
+		plugin = instance;
+	}
 
-    @EventHandler(priority = EventPriority.HIGHEST)
-    public void onPlayerSmelt(final FurnaceSmeltEvent event) {
-        ItemStack source = event.getSource();
-        if (source.getTypeId() == plugin.compressedCoal.getRawId() && source.getDurability() == plugin.compressedCoal.getRawData()) {
-            event.setResult(new SpoutItemStack(MaterialData.diamond, 1));
-        }
-    }
+	@EventHandler(priority = EventPriority.HIGHEST)
+	public void onPlayerSmelt(final FurnaceSmeltEvent event) {
+		final ItemStack source = event.getSource();
+		if (source.getTypeId() == plugin.compressedCoal.getRawId() && source.getDurability() == plugin.compressedCoal.getRawData()) {
+			final ItemStack itemStack = event.getResult();
+			if (itemStack != null) {
+				itemStack.setAmount(itemStack.getAmount() + 1);
+			}
+			else {
+				event.setResult(new SpoutItemStack(MaterialData.diamond, 1));
+			}
+		}
+	}
 }

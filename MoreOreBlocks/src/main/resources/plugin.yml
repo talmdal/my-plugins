@@ -1,0 +1,5 @@
+name: More Ore Blocks
+version: 0.1
+description: Allow non standard ores to be combined into blocks for storage
+main: com.timalmdal.bukkit.moreoreblocks.MoreOreBlocksPlugin
+depend: [Spout]
